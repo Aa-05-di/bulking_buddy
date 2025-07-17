@@ -60,7 +60,7 @@ class _LoginState extends State<Login> {
             key: ValueKey<int>(currentFontIndex),
             style: fontData[currentFontIndex]['style'](
               textStyle: const TextStyle(
-                fontSize: 40.0,
+                fontSize: 42.0,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2.0,
                 color: Colors.white,
@@ -100,38 +100,40 @@ class _LoginState extends State<Login> {
             ),
           ),
 
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(9.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 250),
-                  LoginItem(
-                    hinttext: "Enter Username",
-                    icondata: Icons.person,
-                    controller: usernameController,
-                  ),
-                  const SizedBox(height: 25),
-                  LoginItem(
-                    hinttext: "Enter Password",
-                    icondata: Icons.key,
-                    controller: passwordController,
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20,
-                      horizontal: 135,
+          SingleChildScrollView(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 500),
+                    LoginItem(
+                      hinttext: "Enter Username",
+                      icondata: Icons.person,
+                      controller: usernameController,
                     ),
-                    child: Submit(
-                      data: "Login",
-                      x: 100,
-                      y: 60,
-                      colour: Colors.grey[300],
+                    const SizedBox(height: 25),
+                    LoginItem(
+                      hinttext: "Enter Password",
+                      icondata: Icons.key,
+                      controller: passwordController,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 135,
+                      ),
+                      child: Submit(
+                        data: "Login",
+                        x: 100,
+                        y: 60,
+                        colour: Colors.grey[300],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
