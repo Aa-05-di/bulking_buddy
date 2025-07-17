@@ -16,22 +16,10 @@ class _LoginState extends State<Login> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final List<Map<String, dynamic>> fontData = [
-    {
-      'text': 'Bulking Buddy', 
-      'style': GoogleFonts.orbitron,
-    },
-    {
-      'text': 'بولكينج بدي', 
-      'style': GoogleFonts.notoKufiArabic,
-    },
-    {
-      'text': 'பல்கிங் படி', 
-      'style': GoogleFonts.kavivanar,
-    },
-    {
-      'text': 'बलकिंग बड्डी', 
-      'style': GoogleFonts.chilanka,
-    },
+    {'text': 'Bulking Buddy', 'style': GoogleFonts.orbitron},
+    {'text': 'بولكينج بدي', 'style': GoogleFonts.notoKufiArabic},
+    {'text': 'பல்கிங் படி', 'style': GoogleFonts.kavivanar},
+    {'text': 'बलकिंग बड्डी', 'style': GoogleFonts.chilanka},
   ];
 
   int currentFontIndex = 0;
@@ -81,41 +69,73 @@ class _LoginState extends State<Login> {
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.teal.shade300, Colors.white],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(9.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 250),
-                LoginItem(
-                  hinttext: "Enter Username",
-                  icondata: Icons.person,
-                  controller: usernameController,
-                ),
-                const SizedBox(height: 25),
-                LoginItem(
-                  hinttext: "Enter Password",
-                  icondata: Icons.key,
-                  controller: passwordController,
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical:20 ,horizontal:135 ),
-                  child: Submit(data: "Login", x: 100, y: 60, colour: Colors.grey[300]),
-                ),
-              ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.teal.shade300, Colors.white],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
-        ),
+          Opacity(
+            opacity: 0.2,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ClipRect(
+                child: FractionallySizedBox(
+                  widthFactor: 1,
+                  heightFactor: 1.3, // Show only the bottom 30% of the image
+                  alignment: Alignment.bottomCenter,
+                  child: Image.asset(
+                    'assets/bgl.jpg',
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(9.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 250),
+                  LoginItem(
+                    hinttext: "Enter Username",
+                    icondata: Icons.person,
+                    controller: usernameController,
+                  ),
+                  const SizedBox(height: 25),
+                  LoginItem(
+                    hinttext: "Enter Password",
+                    icondata: Icons.key,
+                    controller: passwordController,
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 20,
+                      horizontal: 135,
+                    ),
+                    child: Submit(
+                      data: "Login",
+                      x: 100,
+                      y: 60,
+                      colour: Colors.grey[300],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
