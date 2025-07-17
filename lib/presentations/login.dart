@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:first_pro/core/log.dart';
 import 'package:first_pro/core/submit.dart';
+import 'package:first_pro/presentations/register.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -107,7 +108,7 @@ class _LoginState extends State<Login> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 500),
+                    const SizedBox(height: 450),
                     LoginItem(
                       hinttext: "Enter Username",
                       icondata: Icons.person,
@@ -132,6 +133,19 @@ class _LoginState extends State<Login> {
                         colour: Colors.grey[300],
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 0,horizontal: 100),
+                      child: GestureDetector(
+                        onTap: (){
+                          Navigator.push(context,MaterialPageRoute(builder: (context)=>Register()));
+                        },
+                        child: Text("Not a User? Register Now",
+                        style: TextStyle(
+                          color: Colors.teal,
+                          fontWeight: FontWeight.bold
+                        ),),
+                      ),
+                    )
                   ],
                 ),
               ),
