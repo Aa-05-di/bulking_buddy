@@ -24,14 +24,6 @@ class _RegisterState extends State<Register> {
     super.dispose();
   }
 
-  void _register() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Registration successful!')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
