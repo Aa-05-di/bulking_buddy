@@ -1,3 +1,4 @@
+import 'package:first_pro/api/api.dart';
 import 'package:first_pro/core/reg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -152,7 +153,24 @@ class _RegisterState extends State<Register> {
                     const SizedBox(height: 32),
                     Center(
                       child: ElevatedButton(
-                        onPressed: _register,
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            final result = await registerUser(
+                              username: _usernameController.text,
+                              email: _emailController.text,
+                              password: _passwordController.text,
+                            );
+                            if(result=="Registration successful"){
+                          _usernameController.clear();
+                          _passwordController.clear();
+                          _emailController.clear();
+                            }
+      
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(result)));
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal.shade400,
                           foregroundColor: Colors.white,
@@ -169,7 +187,7 @@ class _RegisterState extends State<Register> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        child: const Text("Register"),
+                        child: Text("Register"),
                       ),
                     ),
                   ],
