@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:first_pro/api/api.dart';
 import 'package:first_pro/core/log.dart';
 import 'package:first_pro/core/submit.dart';
 import 'package:first_pro/presentations/register.dart';
@@ -126,26 +127,39 @@ class _LoginState extends State<Login> {
                         vertical: 20,
                         horizontal: 135,
                       ),
-                      child: Submit(
-                        data: "Login",
-                        x: 100,
-                        y: 60,
-                        colour: Colors.grey[300],
+                      child: GestureDetector(
+                        // onTap: (){
+                        //   final result = await loginUser(email: usernameController.text, password: passwordController.text);
+                        // },
+                        child: Submit(
+                          data: "Login",
+                          x: 100,
+                          y: 60,
+                          colour: Colors.grey[300],
+                        ),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 0,horizontal: 100),
-                      child: GestureDetector(
-                        onTap: (){
-                          Navigator.push(context,MaterialPageRoute(builder: (context)=>Register()));
-                        },
-                        child: Text("Not a User? Register Now",
-                        style: TextStyle(
-                          color: Colors.teal,
-                          fontWeight: FontWeight.bold
-                        ),),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 0,
+                        horizontal: 100,
                       ),
-                    )
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Register()),
+                          );
+                        },
+                        child: Text(
+                          "Not a User? Register Now",
+                          style: TextStyle(
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
