@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/itemcard.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -11,7 +12,7 @@ class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true, 
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           "E-MARKET",
@@ -35,7 +36,7 @@ class _UserPageState extends State<UserPage> {
       ),
       body: Stack(
         children: [
-
+          
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -55,20 +56,46 @@ class _UserPageState extends State<UserPage> {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Column(
-              children: const [
-                SizedBox(height: 150),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: kToolbarHeight +
+                          MediaQuery.of(context).padding.top +
+                          10,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        ItemCard(
+                          imagePath: 'assets/bgl.jpg',
+                          itemName: 'Item Name',
+                          price: '₹249.00',
+                          protein: 'Protein: 30g',
+                        ),
+                        ItemCard(
+                          imagePath: 'assets/bgl.jpg',
+                          itemName: 'Item 2',
+                          price: '₹199.00',
+                          protein: 'Protein: 25g',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           Opacity(
-            opacity: 0.3,
+            opacity: 0.2,
             child: Align(
               alignment: Alignment.bottomCenter,
               child: ClipRect(
                 child: FractionallySizedBox(
                   widthFactor: 1,
-                  heightFactor: 1.3, // Show only the bottom 30% of the image
+                  heightFactor: 1.3,
                   alignment: Alignment.bottomCenter,
                   child: Image.asset(
                     'assets/bgl.jpg',
