@@ -3,54 +3,65 @@ import 'dart:convert';
 
 var baseurl = "http://10.0.2.2:8000";
 
-
 Future<String> registerUser({
   required String username,
   required String email,
   required String password,
-})async {
-  final url = Uri.parse("$baseurl/register");
-
+  required String location,
+}) async {
+  final url = Uri.parse('$baseurl/register');
   final response = await http.post(
     url,
-    headers: {"Content-Type":"application/json"},
-    body:jsonEncode({
-      "username": username,
-      "email": email,
-      "password": password,
-    })
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'username': username,
+      'email': email,
+      'password': password,
+      'location': location,
+    }),
   );
 
   if (response.statusCode == 200) {
-    return "Registration successful";
+    return 'Registration successful';
   } else {
-    return jsonDecode(response.body)['message'];
+    return 'Registration failed: ${jsonDecode(response.body)['message']}';
   }
 }
 
-Future<String>loginUser({
-  required String email,
-  required String password
-})async{
-  final url = Uri.parse("$baseurl/login");
-
+Future<Map<String, dynamic>> loginUser({required String email, required String password}) async {
   final response = await http.post(
-    url,
-    headers: {"Content-Type":"application/json"},
-    body:jsonEncode({
-      "username":email,
-      "password":password,
-    })
+    Uri.parse('$baseurl/login'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email, 'password': password}),
   );
-  try {
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['message'];
-    } else {
-      final data = jsonDecode(response.body);
-      return data['message'] ?? "Login failed";
-    }
-  } catch (e) {
-    return "Unexpected error: ${response.body}";
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception(jsonDecode(response.body)['message']);
   }
 }
+
+
+Future<Map<String, dynamic>> getUserProfile(String userId) async {
+  final url = Uri.parse('$baseurl/user/$userId');
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to load user profile');
+  }
+}
+
+Future<Map<String, dynamic>> fetchProfileData(String email) async {
+  final response = await http.get(Uri.parse('$baseurl/profile/$email'));
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Failed to fetch profile");
+  }
+}
+

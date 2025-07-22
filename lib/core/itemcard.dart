@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class ItemCard extends StatelessWidget {
@@ -16,29 +17,35 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 310,
+    return Container(
       width: 180,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       child: Card(
         color: Colors.white,
-        elevation: 5,
+        elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(radius: 45, backgroundImage: AssetImage(imagePath)),
+              CachedNetworkImage(
+                imageUrl: imagePath,
+                imageBuilder: (context, imageProvider) =>
+                    CircleAvatar(radius: 45, backgroundImage: imageProvider),
+                placeholder: (context, url) => CircularProgressIndicator(),
+                errorWidget: (context, url, error) => Icon(Icons.error),
+              ),
+
               const SizedBox(height: 10),
               Text(
                 itemName,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: 17,
                 ),
               ),
-              const SizedBox(height: 4),
               Text(
                 price,
                 style: const TextStyle(
@@ -47,14 +54,10 @@ class ItemCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 4),
               Text(
                 protein,
                 style: const TextStyle(fontSize: 14, color: Colors.black87),
               ),
-              const SizedBox(height: 10),
-
-              // Quantity row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -81,14 +84,14 @@ class ItemCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   child: const Text(
                     "Add to Cart",
                     style: TextStyle(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

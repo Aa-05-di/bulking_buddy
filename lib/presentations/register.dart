@@ -15,6 +15,7 @@ class _RegisterState extends State<Register> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _locationController = TextEditingController();
 
   @override
   void dispose() {
@@ -142,6 +143,20 @@ class _RegisterState extends State<Register> {
                         return null;
                       },
                     ),
+                    const SizedBox(height: 16),
+                    CustomTextFormField(
+                      controller: _locationController,
+                      label: "Location",
+                      hintText: "Enter your location",
+                      prefixIcon: Icons.location_on,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a location';
+                        }
+                        return null;
+                      },
+                    ),
+
                     const SizedBox(height: 32),
                     Center(
                       child: ElevatedButton(
@@ -151,13 +166,16 @@ class _RegisterState extends State<Register> {
                               username: _usernameController.text,
                               email: _emailController.text,
                               password: _passwordController.text,
+                              location: _locationController.text,
                             );
-                            if(result=="Registration successful"){
-                          _usernameController.clear();
-                          _passwordController.clear();
-                          _emailController.clear();
+
+                            if (result == "Registration successful") {
+                              _usernameController.clear();
+                              _passwordController.clear();
+                              _emailController.clear();
+                              _locationController.clear();
                             }
-      
+
                             ScaffoldMessenger.of(
                               context,
                             ).showSnackBar(SnackBar(content: Text(result)));

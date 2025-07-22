@@ -3,6 +3,7 @@ import 'package:first_pro/api/api.dart';
 import 'package:first_pro/core/log.dart';
 import 'package:first_pro/core/submit.dart';
 import 'package:first_pro/presentations/register.dart';
+import 'package:first_pro/presentations/userpage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,6 +18,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
   final List<Map<String, dynamic>> fontData = [
     {'text': 'Bulking Buddy', 'style': GoogleFonts.orbitron},
     {'text': 'بولكينج بدي', 'style': GoogleFonts.notoKufiArabic},
@@ -89,7 +91,7 @@ class _LoginState extends State<Login> {
               child: ClipRect(
                 child: FractionallySizedBox(
                   widthFactor: 1,
-                  heightFactor: 1.3, // Show only the bottom 30% of the image
+                  heightFactor: 1.3,
                   alignment: Alignment.bottomCenter,
                   child: Image.asset(
                     'assets/bgl.jpg',
@@ -101,7 +103,6 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
-
           SingleChildScrollView(
             child: Center(
               child: Padding(
@@ -128,9 +129,27 @@ class _LoginState extends State<Login> {
                         horizontal: 135,
                       ),
                       child: GestureDetector(
-                        // onTap: (){
-                        //   final result = await loginUser(email: usernameController.text, password: passwordController.text);
-                        // },
+                        onTap: () async {
+                          try {
+                            final user = await loginUser(
+                              email: usernameController.text,
+                              password: passwordController.text,
+                            );
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserPage(
+                                  email: user['email'],
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Login failed: ${e.toString()}")),
+                            );
+                          }
+                        },
                         child: Submit(
                           data: "Login",
                           x: 100,
@@ -151,7 +170,7 @@ class _LoginState extends State<Login> {
                             MaterialPageRoute(builder: (context) => Register()),
                           );
                         },
-                        child: Text(
+                        child: const Text(
                           "Not a User? Register Now",
                           style: TextStyle(
                             color: Colors.teal,
