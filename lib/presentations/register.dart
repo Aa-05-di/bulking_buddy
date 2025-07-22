@@ -8,8 +8,7 @@ class Register extends StatefulWidget {
   _RegisterState createState() => _RegisterState();
 }
 
-class _RegisterState extends State<Register>
-    with SingleTickerProviderStateMixin {
+class _RegisterState extends State<Register> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -48,15 +47,16 @@ class _RegisterState extends State<Register>
       _selectedIndex = index;
     });
     if (index == 1 && mounted) {
-      Navigator.pop(context);
+      Navigator.pop(context); // Navigate back when "Home" is tapped
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
+    //final mediaQuery = MediaQuery.of(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Prevent body resize with keyboard
       appBar: AppBar(
         backgroundColor: Colors.teal.shade600,
         elevation: 0,
@@ -68,7 +68,7 @@ class _RegisterState extends State<Register>
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white),
             onPressed: () {
-              //Need to use later
+              // Add terms and conditions navigation or dialog here
             },
           ),
         ],
@@ -82,6 +82,7 @@ class _RegisterState extends State<Register>
         ),
       ),
       body: Stack(
+        fit: StackFit.expand, // Ensure background covers the entire screen
         children: [
           _buildBackground(),
           SafeArea(
@@ -92,7 +93,7 @@ class _RegisterState extends State<Register>
                   top: 20,
                   left: 24,
                   right: 24,
-                  bottom: 80,
+                  bottom: 80, // Increased bottom padding for floating widget
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +131,10 @@ class _RegisterState extends State<Register>
                   icon: Icon(Icons.person_add),
                   label: 'Register',
                 ),
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
               ],
               currentIndex: _selectedIndex,
               selectedItemColor: Colors.teal.shade600,
@@ -156,7 +160,10 @@ class _RegisterState extends State<Register>
       child: Positioned.fill(
         child: Opacity(
           opacity: 0.1,
-          child: Image.asset('assets/bgl.jpg', fit: BoxFit.cover),
+          child: Image.asset(
+            'assets/bgl.jpg',
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
@@ -178,7 +185,10 @@ class _RegisterState extends State<Register>
         const SizedBox(height: 8),
         Text(
           "Join us today!",
-          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 18),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.85),
+            fontSize: 18,
+          ),
         ),
       ],
     );
@@ -199,8 +209,7 @@ class _RegisterState extends State<Register>
                 label: "Username",
                 icon: Icons.person_outline,
                 validator: (val) {
-                  if (val == null || val.isEmpty)
-                    return 'Please enter a username';
+                  if (val == null || val.isEmpty) return 'Please enter a username';
                   if (val.length < 3) return 'Minimum 3 characters required';
                   return null;
                 },
@@ -212,11 +221,8 @@ class _RegisterState extends State<Register>
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: (val) {
-                  if (val == null || val.isEmpty)
-                    return 'Please enter an email';
-                  if (!RegExp(
-                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$',
-                  ).hasMatch(val)) {
+                  if (val == null || val.isEmpty) return 'Please enter an email';
+                  if (!RegExp(r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$').hasMatch(val)) {
                     return 'Enter a valid email';
                   }
                   return null;
@@ -229,8 +235,7 @@ class _RegisterState extends State<Register>
                 icon: Icons.lock_outline,
                 obscureText: true,
                 validator: (val) {
-                  if (val == null || val.isEmpty)
-                    return 'Please enter a password';
+                  if (val == null || val.isEmpty) return 'Please enter a password';
                   if (val.length < 6) return 'At least 6 characters required';
                   return null;
                 },
@@ -241,8 +246,7 @@ class _RegisterState extends State<Register>
                 label: "Location",
                 icon: Icons.location_on_outlined,
                 validator: (val) {
-                  if (val == null || val.isEmpty)
-                    return 'Please enter a location';
+                  if (val == null || val.isEmpty) return 'Please enter a location';
                   return null;
                 },
               ),
@@ -296,7 +300,9 @@ class _RegisterState extends State<Register>
         backgroundColor: Colors.teal.shade600,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
         elevation: 4,
       ),
       child: _isLoading
@@ -332,7 +338,7 @@ class _RegisterState extends State<Register>
           _emailController.clear();
           _locationController.clear();
           if (mounted) {
-            Navigator.pop(context);
+            Navigator.pop(context); // Navigate back on success
           }
         }
 
@@ -344,9 +350,7 @@ class _RegisterState extends State<Register>
                   ? Colors.green.shade600
                   : Colors.red.shade600,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
@@ -357,9 +361,7 @@ class _RegisterState extends State<Register>
               content: Text('Error: \${e.toString()}'),
               backgroundColor: Colors.red.shade600,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
