@@ -27,10 +27,12 @@ class ItemCard extends StatelessWidget {
           children: [
             // Image
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(18),
+              ),
               child: Image.network(
                 imagePath,
-                height: 90, // Reduced for better content visibility
+                height: 90,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => const SizedBox(
@@ -40,7 +42,6 @@ class ItemCard extends StatelessWidget {
               ),
             ),
 
-            // Text + Buy Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               child: Column(
@@ -48,29 +49,44 @@ class ItemCard extends StatelessWidget {
                 children: [
                   Text(
                     itemName,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(price, style: const TextStyle(fontSize: 15, color: Colors.green)),
+                  Text(
+                    price,
+                    style: const TextStyle(fontSize: 15, color: Colors.green),
+                  ),
                   const SizedBox(height: 2),
-                  Text(protein, style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                  const SizedBox(height: 10),
+                  Text(
+                    protein,
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: Add your "Buy" logic here
+                        // need later
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text("Buy", style: TextStyle(fontSize: 13, color: Colors.white)),
+                      child: const Text(
+                        "Buy",
+                        style: TextStyle(fontSize: 13, color: Colors.white),
+                      ),
                     ),
                   ),
                 ],

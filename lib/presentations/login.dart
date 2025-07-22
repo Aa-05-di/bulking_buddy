@@ -139,14 +139,15 @@ class _LoginState extends State<Login> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => UserPage(
-                                  email: user['email'],
-                                ),
+                                builder: (context) =>
+                                    UserPage(email: user['email']),
                               ),
                             );
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Login failed: ${e.toString()}")),
+                              SnackBar(
+                                content: Text("Login failed: ${e.toString()}"),
+                              ),
                             );
                           }
                         },

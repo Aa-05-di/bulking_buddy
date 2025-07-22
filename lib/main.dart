@@ -1,5 +1,4 @@
 import 'package:first_pro/presentations/login.dart';
-import 'package:first_pro/presentations/userpage.dart';
 import 'package:flutter/material.dart';
 
 void main(){
@@ -15,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: "Bulking Buddy",
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
-      home:UserPage(email: "aadithyanpramad@gmail.com"),
+      home:Login(),
     );
   }
 }

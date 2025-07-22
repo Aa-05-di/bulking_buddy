@@ -49,7 +49,7 @@ class _UserPageState extends State<UserPage> {
                 blurRadius: 6.0,
                 color: Colors.black26,
                 offset: Offset(1.5, 1.5),
-              )
+              ),
             ],
           ),
         ),
@@ -59,7 +59,6 @@ class _UserPageState extends State<UserPage> {
       ),
       body: Stack(
         children: [
-          // Background
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -70,7 +69,6 @@ class _UserPageState extends State<UserPage> {
             ),
           ),
 
-          // Optional faded image background
           Opacity(
             opacity: 0.1,
             child: Align(
@@ -79,57 +77,60 @@ class _UserPageState extends State<UserPage> {
             ),
           ),
 
-          // Content
           SafeArea(
-  child: isLoading
-      ? const Center(child: CircularProgressIndicator())
-      : Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 80), // To offset from AppBar
-                const Text(
-                  "Nearby Items",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                items.isEmpty
-                    ? const Expanded( // Use Expanded so that it takes remaining space
-                        child: Center(
-                          child: Text(
-                            "No nearby items found.",
-                            style: TextStyle(fontSize: 18, color: Colors.black54),
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 80),
+                          const Text(
+                            "Nearby Items",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                      )
-                    : SizedBox(
-                        height: 270,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            return ItemCard(
-                              imagePath: item['photo'] ?? '',
-                              itemName: item['itemname'] ?? 'Unnamed Item',
-                              price: '₹${item['price'] ?? 'N/A'}',
-                              protein: 'Protein: ${item['protein'] ?? 'N/A'}',
-                            );
-                          },
-                        ),
+                          const SizedBox(height: 16),
+                          items.isEmpty
+                              ? const Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      "No nearby items found.",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : SizedBox(
+                                  height: 270,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: items.length,
+                                    itemBuilder: (context, index) {
+                                      final item = items[index];
+                                      return ItemCard(
+                                        imagePath: item['photo'] ?? '',
+                                        itemName:
+                                            item['itemname'] ?? 'Unnamed Item',
+                                        price: '₹${item['price'] ?? 'N/A'}',
+                                        protein:
+                                            'Protein: ${item['protein'] ?? 'N/A'}',
+                                      );
+                                    },
+                                  ),
+                                ),
+                        ],
                       ),
-              ],
-            ),
+                    ),
+                  ),
           ),
-        ),
-)
-
         ],
       ),
     );
