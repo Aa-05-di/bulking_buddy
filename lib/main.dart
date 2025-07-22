@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: "Bulking Buddy",
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
-      home:Login(),
+      home:UserPage(email: "aadithyanpramad@gmail.com"),
     );
   }
 }

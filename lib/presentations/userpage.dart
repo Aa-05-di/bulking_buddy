@@ -39,71 +39,99 @@ class _UserPageState extends State<UserPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
-          "E-MARKET",
+          "Local Market",
           style: TextStyle(
             color: Colors.white,
-            fontSize: 38,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            shadows: [Shadow(blurRadius: 10.0, color: Colors.black26, offset: Offset(2.0, 2.0))],
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            shadows: [
+              Shadow(
+                blurRadius: 6.0,
+                color: Colors.black26,
+                offset: Offset(1.5, 1.5),
+              )
+            ],
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
+      body: Stack(
+        children: [
+          // Background
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00897B), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+
+          // Optional faded image background
+          Opacity(
+            opacity: 0.1,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Image.asset('assets/bgl.jpg', fit: BoxFit.cover),
+            ),
+          ),
+
+          // Content
+          SafeArea(
+  child: isLoading
+      ? const Center(child: CircularProgressIndicator())
+      : Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.teal, Colors.white, Colors.tealAccent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                const SizedBox(height: 80), // To offset from AppBar
+                const Text(
+                  "Nearby Items",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
                 ),
-                Opacity(
-                  opacity: 0.2,
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Image.asset('assets/bgl.jpg', fit: BoxFit.cover),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: ListView(
-                    children: [
-                      SizedBox(height: kToolbarHeight + MediaQuery.of(context).padding.top + 10),
-                      const SizedBox(height: 12),
-                      const Text(
-                        "Nearby Items",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 320,
+                const SizedBox(height: 16),
+                items.isEmpty
+                    ? const Expanded( // Use Expanded so that it takes remaining space
+                        child: Center(
+                          child: Text(
+                            "No nearby items found.",
+                            style: TextStyle(fontSize: 18, color: Colors.black54),
+                          ),
+                        ),
+                      )
+                    : SizedBox(
+                        height: 270,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: items.length,
                           itemBuilder: (context, index) {
                             final item = items[index];
                             return ItemCard(
-                              imagePath: "https://picsum.photos/id/237/200/300", 
-                              itemName: item['itemname'] ?? 'No name',
+                              imagePath: item['photo'] ?? '',
+                              itemName: item['itemname'] ?? 'Unnamed Item',
                               price: '₹${item['price'] ?? 'N/A'}',
                               protein: 'Protein: ${item['protein'] ?? 'N/A'}',
                             );
                           },
                         ),
                       ),
-                    ],
-                  ),
-                ),
               ],
             ),
+          ),
+        ),
+)
+
+        ],
+      ),
     );
   }
 }

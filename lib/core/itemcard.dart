@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class ItemCard extends StatelessWidget {
@@ -17,88 +16,67 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+    return SizedBox(
+      width: 200,
       child: Card(
-        color: Colors.white,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CachedNetworkImage(
-                imageUrl: imagePath,
-                imageBuilder: (context, imageProvider) =>
-                    CircleAvatar(radius: 45, backgroundImage: imageProvider),
-                placeholder: (context, url) => CircularProgressIndicator(),
-                errorWidget: (context, url, error) => Icon(Icons.error),
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              child: Image.network(
+                imagePath,
+                height: 90, // Reduced for better content visibility
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const SizedBox(
+                  height: 90,
+                  child: Center(child: Text('Image not available')),
+                ),
               ),
+            ),
 
-              const SizedBox(height: 10),
-              Text(
-                itemName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                ),
-              ),
-              Text(
-                price,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.teal,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                protein,
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            // Text + Buy Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    color: Colors.teal,
-                    onPressed: () {},
+                  Text(
+                    itemName,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const Text(
-                    '1',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    color: Colors.teal,
-                    onPressed: () {},
+                  const SizedBox(height: 4),
+                  Text(price, style: const TextStyle(fontSize: 15, color: Colors.green)),
+                  const SizedBox(height: 2),
+                  Text(protein, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // TODO: Add your "Buy" logic here
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text("Buy", style: TextStyle(fontSize: 13, color: Colors.white)),
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: const Text(
-                    "Add to Cart",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
