@@ -32,7 +32,7 @@ class ItemCard extends StatelessWidget {
               ),
               child: Image.network(
                 imagePath,
-                height: 90,
+                height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => const SizedBox(
@@ -76,11 +76,11 @@ class ItemCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
+                          horizontal: 34,
+                          vertical: 13,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
                       child: const Text(

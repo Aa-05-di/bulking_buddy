@@ -65,3 +65,34 @@ Future<Map<String, dynamic>> fetchProfileData(String email) async {
   }
 }
 
+Future<String>addItem({
+  required String photo,
+  required String itemname,
+  required String price,
+  required String protein,
+  required String seller,
+  required String location
+})async{
+  final url = Uri.parse("$baseurl/additem");
+  final response = await http.post(
+    url,
+    headers: {'Content-Type':'application/json'},
+    body:jsonEncode({
+      'photo':photo,
+      'itemname':itemname,
+      'price':price,
+      'protein':protein,
+      'seller':seller,
+      'location':location
+    })
+  );
+
+  if (response.statusCode == 200) {
+    return 'Item added successfully';
+  } else {
+    final error = jsonDecode(response.body)['message'] ?? 'Something went wrong!';
+    throw Exception('Failed to add item: $error');
+  }
+
+}
+
