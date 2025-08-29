@@ -32,7 +32,8 @@ class _UserPageState extends State<UserPage> {
       final userData = await fetchProfileData(widget.email);
       setState(() {
         items = userData['nearbyItems'] ?? [];
-        userName = userData['name'] ?? 'User';
+        cart = userData['cart'] ?? []; // Correctly populate the cart from backend
+        userName = userData['username'] ?? 'User';
         isLoading = false;
       });
     } catch (e) {
@@ -40,23 +41,72 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
-  void addToCart(dynamic product) {
-    setState(() {
-      cart.add(product);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${product['itemname']} added to cart!'),
-        backgroundColor: const Color(0xFF00897B),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  Future<void> addToCart(dynamic product) async {
+    try {
+      final String itemId = product['_id'];
+      await addToUserCart(userEmail: widget.email, itemId: itemId);
+      
+      // After adding to cart on the server, reload data to get the updated cart
+      await loadUserData();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${product['itemname']} added to cart!'),
+          backgroundColor: const Color(0xFF00CBA9),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print("Error adding to cart: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add ${product['itemname']} to cart.'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _removeItemFromCart(String itemId) async {
+    try {
+      await removeFromUserCart(userEmail: widget.email, itemId: itemId);
+      // Reload user data to update the cart in the UI
+      await loadUserData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Item removed from cart!'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print("Error removing item from cart: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to remove item from cart.'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void goToCartPage() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const Cart()),
+      MaterialPageRoute(
+          builder: (context) => Cart(
+                cartItems: cart,
+                onItemRemoved: _removeItemFromCart,
+                onQuantityChanged: (itemId, newCount) async {
+                  await updateCartQuantity(
+                    userEmail: widget.email, 
+                    itemId: itemId, 
+                    newQuantity: newCount
+                  );
+                },
+              )),
     );
   }
 
@@ -69,11 +119,13 @@ class _UserPageState extends State<UserPage> {
 
   void _showProfileMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero),
+            ancestor: overlay),
       ),
       Offset.zero & overlay.size,
     );
@@ -86,7 +138,7 @@ class _UserPageState extends State<UserPage> {
           value: 'profile',
           child: Row(
             children: [
-              Icon(Icons.person, color: Color(0xFF00897B)),
+              Icon(Icons.person, color: Color(0xFF00CBA9)),
               SizedBox(width: 8),
               Text('My Profile'),
             ],
@@ -124,6 +176,7 @@ class _UserPageState extends State<UserPage> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF141A28), // Dark background for futuristic feel
       floatingActionButton: FloatingActionButton.extended(
         onPressed: becomeSeller,
         label: const Text(
@@ -131,56 +184,41 @@ class _UserPageState extends State<UserPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         icon: const Icon(Icons.store, color: Colors.white),
-        backgroundColor: const Color(0xFF00897B),
+        backgroundColor: const Color(0xFF00CBA9), // Brighter accent color
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE0F2F1), Color(0xFFB2DFDB)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFF00897B)))
-              : RefreshIndicator(
-                  onRefresh: loadUserData,
-                  color: const Color(0xFF00897B),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(),
-                        const SizedBox(height: 20),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: _buildSearchBar(),
-                        ),
-                        const SizedBox(height: 20),
-                        _buildNearbyItemsSection(filteredItems),
-                        const SizedBox(height: 100),
-                      ],
-                    ),
+      body: SafeArea(
+        child: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF00CBA9)))
+            : RefreshIndicator(
+                onRefresh: loadUserData,
+                color: const Color(0xFF00CBA9),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: _buildSearchBar(),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildNearbyItemsSection(filteredItems),
+                      const SizedBox(height: 100),
+                    ],
                   ),
                 ),
-        ),
+              ),
       ),
     );
   }
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      decoration: const BoxDecoration(
-        color: Color(0xFF00897B),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -192,9 +230,9 @@ class _UserPageState extends State<UserPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Hello, ${widget.email.split('@')[0]} 👋",
+                      "${widget.email.split('@')[0].toUpperCase()} 👋",
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -205,7 +243,7 @@ class _UserPageState extends State<UserPage> {
                       "Find the best products nearby!",
                       style: TextStyle(
                         color: Colors.white70,
-                        fontSize: 14,
+                        fontSize: 16,
                       ),
                     ),
                   ],
@@ -216,7 +254,8 @@ class _UserPageState extends State<UserPage> {
                   Stack(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
+                        icon: const Icon(Icons.shopping_cart_outlined,
+                            color: Colors.white, size: 28),
                         onPressed: goToCartPage,
                       ),
                       if (cart.isNotEmpty)
@@ -229,7 +268,8 @@ class _UserPageState extends State<UserPage> {
                               color: Colors.redAccent,
                               shape: BoxShape.circle,
                             ),
-                            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                            constraints:
+                                const BoxConstraints(minWidth: 18, minHeight: 18),
                             child: Text(
                               cart.length.toString(),
                               style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -240,7 +280,8 @@ class _UserPageState extends State<UserPage> {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.account_circle, color: Colors.white, size: 28),
+                    icon: const Icon(Icons.account_circle,
+                        color: Colors.white, size: 28),
                     onPressed: () => _showProfileMenu(context),
                   ),
                 ],
@@ -255,24 +296,19 @@ class _UserPageState extends State<UserPage> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.1), // Glassmorphism effect
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: TextField(
         onChanged: (val) => setState(() => searchQuery = val),
+        style: const TextStyle(color: Colors.white), // Text color for dark background
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           hintText: "Search items...",
-          hintStyle: const TextStyle(color: Colors.grey),
-          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          hintStyle: const TextStyle(color: Colors.white54), // Hint color
+          prefixIcon: const Icon(Icons.search, color: Colors.white54),
           border: InputBorder.none,
         ),
       ),
@@ -284,23 +320,24 @@ class _UserPageState extends State<UserPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 "Nearby Items",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Colors.white,
                 ),
               ),
               TextButton(
                 onPressed: () {},
                 child: const Text(
                   "See All",
-                  style: TextStyle(color: Color(0xFF00897B), fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Color(0xFF00CBA9), fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -313,25 +350,26 @@ class _UserPageState extends State<UserPage> {
                 child: Center(
                   child: Text(
                     "No nearby items found.",
-                    style: TextStyle(fontSize: 18, color: Colors.black54.withOpacity(0.7)),
+                    style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.7)),
                   ),
                 ),
               )
             : SizedBox(
-                height: 290,
+                height: 300,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
+                      padding: const EdgeInsets.only(right: 24.0),
                       child: ItemCard(
                         imagePath: item['photo'] ?? '',
                         itemName: item['itemname'] ?? 'Unnamed',
                         price: '₹${item['price'] ?? 'N/A'}',
                         protein: item['protein'] ?? 'N/A',
+                        onTap: () => addToCart(item), // Added onTap handler
                       ),
                     );
                   },

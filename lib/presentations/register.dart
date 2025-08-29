@@ -57,30 +57,30 @@ class _RegisterState extends State<Register> with SingleTickerProviderStateMixin
 
     return Scaffold(
       resizeToAvoidBottomInset: false, // Prevent body resize with keyboard
-      appBar: AppBar(
-        backgroundColor: Colors.teal.shade600,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.white),
-            onPressed: () {
-              // Add terms and conditions navigation or dialog here
-            },
-          ),
-        ],
-        title: const Text(
-          "Create Account",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.teal.shade600,
+      //   elevation: 0,
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back, color: Colors.white),
+      //     onPressed: () => Navigator.pop(context),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.info_outline, color: Colors.white),
+      //       onPressed: () {
+      //         // Add terms and conditions navigation or dialog here
+      //       },
+      //     ),
+      //   ],
+      //   title: const Text(
+      //     "Create Account",
+      //     style: TextStyle(
+      //       color: Colors.white,
+      //       fontSize: 24,
+      //       fontWeight: FontWeight.bold,
+      //     ),
+      //   ),
+      // ),
       body: Stack(
         fit: StackFit.expand, // Ensure background covers the entire screen
         children: [
@@ -99,7 +99,7 @@ class _RegisterState extends State<Register> with SingleTickerProviderStateMixin
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 72),
                     _buildForm(),
                   ],
                 ),
@@ -179,10 +179,10 @@ class _RegisterState extends State<Register> with SingleTickerProviderStateMixin
             color: Colors.white,
             fontSize: 36,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
+            letterSpacing: 1.3,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
           "Join us today!",
           style: TextStyle(

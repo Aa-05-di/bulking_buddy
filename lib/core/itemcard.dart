@@ -5,6 +5,7 @@ class ItemCard extends StatelessWidget {
   final String itemName;
   final String price;
   final String protein;
+  final VoidCallback? onTap;
 
   const ItemCard({
     super.key,
@@ -12,6 +13,7 @@ class ItemCard extends StatelessWidget {
     required this.itemName,
     required this.price,
     required this.protein,
+    this.onTap, // onTap is now a required parameter
   });
 
   @override
@@ -70,9 +72,7 @@ class ItemCard extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // need later
-                      },
+                      onPressed: onTap, // Now calls the onTap callback
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         padding: const EdgeInsets.symmetric(
