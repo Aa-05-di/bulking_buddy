@@ -60,7 +60,7 @@ Future<Map<String, dynamic>> fetchProfileData(String email) async {
 Future<String> addItem({
   required String photo,
   required String itemname,
-  required dynamic price, // allow num/string, server validates
+  required dynamic price,
   required String protein,
   required String seller,
   required String location,
@@ -181,6 +181,21 @@ Future<Map<String, dynamic>> updateCartQuantityAndCart({
     throw Exception('Failed to update quantity: ${_msg(response.body)}');
   }
 }
+
+// ---------- Checkout ----------
+Future<void> placeOrderAndClearCart({required String userEmail}) async {
+  final url = Uri.parse('$baseurl/placeorder');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': userEmail}),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to place order: ${_msg(response.body)}');
+  }
+}
+
 
 // ---------- Utils ----------
 String _msg(String body) {

@@ -32,7 +32,7 @@ class _UserPageState extends State<UserPage> {
       final userData = await fetchProfileData(widget.email);
       setState(() {
         items = userData['nearbyItems'] ?? [];
-        cart = userData['cart'] ?? []; // Correctly populate the cart from backend
+        cart = userData['cart'] ?? [];
         userName = userData['username'] ?? 'User';
         isLoading = false;
       });
@@ -45,10 +45,7 @@ class _UserPageState extends State<UserPage> {
     try {
       final String itemId = product['_id'];
       await addToUserCart(userEmail: widget.email, itemId: itemId);
-      
-      // After adding to cart on the server, reload data to get the updated cart
-      await loadUserData();
-
+      await loadUserData(); // Reload after adding to cart
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${product['itemname']} added to cart!'),
@@ -71,8 +68,7 @@ class _UserPageState extends State<UserPage> {
   Future<void> _removeItemFromCart(String itemId) async {
     try {
       await removeFromUserCart(userEmail: widget.email, itemId: itemId);
-      // Reload user data to update the cart in the UI
-      await loadUserData();
+      await loadUserData(); // Reload after removing
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Item removed from cart!'),
@@ -96,17 +92,27 @@ class _UserPageState extends State<UserPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => Cart(
-                cartItems: cart,
-                onItemRemoved: _removeItemFromCart,
-                onQuantityChanged: (itemId, newCount) async {
-                  await updateCartQuantity(
-                    userEmail: widget.email, 
-                    itemId: itemId, 
-                    newQuantity: newCount
-                  );
-                },
-              )),
+        builder: (context) => Cart(
+          cartItems: cart,
+          onItemRemoved: (itemId) async {
+            await _removeItemFromCart(itemId);
+          },
+          onQuantityChanged: (itemId, newCount) async {
+            await updateCartQuantity(
+              userEmail: widget.email, 
+              itemId: itemId, 
+              newQuantity: newCount
+            );
+            await loadUserData(); // Reload cart data to update the UI
+          },
+          onCheckout: () async {
+            // This is the new callback
+            await placeOrderAndClearCart(userEmail: widget.email);
+            // After the order is placed and cart is cleared, reload the data
+            await loadUserData(); 
+          },
+        ),
+      ),
     );
   }
 
@@ -176,7 +182,7 @@ class _UserPageState extends State<UserPage> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: const Color(0xFF141A28), // Dark background for futuristic feel
+      backgroundColor: const Color(0xFF141A28),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: becomeSeller,
         label: const Text(
@@ -184,7 +190,7 @@ class _UserPageState extends State<UserPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         icon: const Icon(Icons.store, color: Colors.white),
-        backgroundColor: const Color(0xFF00CBA9), // Brighter accent color
+        backgroundColor: const Color(0xFF00CBA9),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
@@ -296,18 +302,18 @@ class _UserPageState extends State<UserPage> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1), // Glassmorphism effect
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: TextField(
         onChanged: (val) => setState(() => searchQuery = val),
-        style: const TextStyle(color: Colors.white), // Text color for dark background
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           hintText: "Search items...",
-          hintStyle: const TextStyle(color: Colors.white54), // Hint color
+          hintStyle: const TextStyle(color: Colors.white54),
           prefixIcon: const Icon(Icons.search, color: Colors.white54),
           border: InputBorder.none,
         ),
@@ -369,7 +375,7 @@ class _UserPageState extends State<UserPage> {
                         itemName: item['itemname'] ?? 'Unnamed',
                         price: '₹${item['price'] ?? 'N/A'}',
                         protein: item['protein'] ?? 'N/A',
-                        onTap: () => addToCart(item), // Added onTap handler
+                        onTap: () => addToCart(item),
                       ),
                     );
                   },

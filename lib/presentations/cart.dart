@@ -1,16 +1,19 @@
 import 'package:first_pro/core/cartitem.dart';
+import 'package:first_pro/presentations/checkout.dart';
 import 'package:flutter/material.dart';
 
 class Cart extends StatefulWidget {
   final List<dynamic> cartItems;
   final Function(String) onItemRemoved;
   final Function(String, int) onQuantityChanged;
+  final Future<void> Function() onCheckout; // Correct type
 
   const Cart({
     super.key,
     required this.cartItems,
     required this.onItemRemoved,
     required this.onQuantityChanged,
+    required this.onCheckout,
   });
 
   @override
@@ -55,13 +58,15 @@ class _CartState extends State<Cart> {
   }
 
   void _decrementQuantity(String itemId) {
-    setState(() {
-      final currentQuantity = _itemQuantities[itemId] ?? 1;
-      if (currentQuantity > 1) {
+    final currentQuantity = _itemQuantities[itemId] ?? 1;
+    if (currentQuantity <= 1) {
+      _removeItem(itemId);
+    } else {
+      setState(() {
         _itemQuantities[itemId] = currentQuantity - 1;
-      }
-    });
-    widget.onQuantityChanged(itemId, _itemQuantities[itemId]!);
+      });
+      widget.onQuantityChanged(itemId, _itemQuantities[itemId]!);
+    }
   }
 
   void _removeItem(String itemId) {
@@ -151,8 +156,21 @@ class _CartState extends State<Cart> {
       padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: Center(
         child: ElevatedButton(
-          onPressed: () {
-            // Add checkout logic here
+          onPressed: () async {
+            // Wait for the checkout page to be popped
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CheckoutPage(
+                  cartItems: widget.cartItems,
+                ),
+              ),
+            );
+
+            // If the result is 'order_placed', then call the async function
+            if (result == 'order_placed') {
+              await widget.onCheckout();
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF00CBA9),
