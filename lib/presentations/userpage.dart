@@ -1,3 +1,5 @@
+import 'package:first_pro/presentations/history.dart';
+import 'package:first_pro/presentations/recorders.dart';
 import 'package:flutter/material.dart';
 import 'package:first_pro/api/api.dart';
 import 'package:first_pro/presentations/cart.dart';
@@ -20,21 +22,50 @@ class _UserPageState extends State<UserPage> {
   bool isLoading = true;
   String userName = '';
   String searchQuery = '';
+  int _pendingOrderCount = 0;
 
   @override
   void initState() {
     super.initState();
-    loadUserData();
+    loadAllData();
+  }
+
+  Future<void> loadAllData() async {
+    if (!mounted) return;
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final results = await Future.wait([
+        fetchProfileData(widget.email),
+        fetchPendingOrderCount(widget.email),
+      ]);
+
+      final userData = results[0] as Map<String, dynamic>;
+      items = userData['nearbyItems'] ?? [];
+      cart = userData['cart'] ?? [];
+      userName = userData['username'] ?? 'User';
+
+      _pendingOrderCount = results[1] as int;
+    } catch (e) {
+      print("Error loading all data: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> loadUserData() async {
     try {
       final userData = await fetchProfileData(widget.email);
+      if (!mounted) return;
       setState(() {
         items = userData['nearbyItems'] ?? [];
         cart = userData['cart'] ?? [];
         userName = userData['username'] ?? 'User';
-        isLoading = false;
       });
     } catch (e) {
       print("Error loading user data: $e");
@@ -45,46 +76,24 @@ class _UserPageState extends State<UserPage> {
     try {
       final String itemId = product['_id'];
       await addToUserCart(userEmail: widget.email, itemId: itemId);
-      await loadUserData(); // Reload after adding to cart
+      await loadUserData();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${product['itemname']} added to cart!'),
           backgroundColor: const Color(0xFF00CBA9),
-          duration: const Duration(seconds: 2),
         ),
       );
     } catch (e) {
       print("Error adding to cart: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add ${product['itemname']} to cart.'),
-          backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 2),
-        ),
-      );
     }
   }
 
   Future<void> _removeItemFromCart(String itemId) async {
     try {
       await removeFromUserCart(userEmail: widget.email, itemId: itemId);
-      await loadUserData(); // Reload after removing
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Item removed from cart!'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      await loadUserData();
     } catch (e) {
       print("Error removing item from cart: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to remove item from cart.'),
-          backgroundColor: Colors.redAccent,
-          duration: Duration(seconds: 2),
-        ),
-      );
     }
   }
 
@@ -99,21 +108,38 @@ class _UserPageState extends State<UserPage> {
           },
           onQuantityChanged: (itemId, newCount) async {
             await updateCartQuantity(
-              userEmail: widget.email, 
-              itemId: itemId, 
-              newQuantity: newCount
-            );
-            await loadUserData(); // Reload cart data to update the UI
+                userEmail: widget.email,
+                itemId: itemId,
+                newQuantity: newCount);
+            await loadUserData();
           },
           onCheckout: () async {
-            // This is the new callback
             await placeOrderAndClearCart(userEmail: widget.email);
-            // After the order is placed and cart is cleared, reload the data
-            await loadUserData(); 
+            await loadUserData();
           },
         ),
       ),
     );
+  }
+
+  void onMyOrders() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderHistoryPage(userEmail: widget.email),
+      ),
+    );
+  }
+
+  void onReceivedOrders() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReceivedOrdersPage(userEmail: widget.email),
+      ),
+    ).then((_) {
+      loadAllData();
+    });
   }
 
   void becomeSeller() {
@@ -140,19 +166,9 @@ class _UserPageState extends State<UserPage> {
       context: context,
       position: position,
       items: [
-        const PopupMenuItem(
-          value: 'profile',
-          child: Row(
-            children: [
-              Icon(Icons.person, color: Color(0xFF00CBA9)),
-              SizedBox(width: 8),
-              Text('My Profile'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'logout',
-          child: Row(
+          child: const Row(
             children: [
               Icon(Icons.logout, color: Colors.red),
               SizedBox(width: 8),
@@ -183,22 +199,44 @@ class _UserPageState extends State<UserPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: const Color(0xFF141A28),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: becomeSeller,
-        label: const Text(
-          "Become a Seller",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        icon: const Icon(Icons.store, color: Colors.white),
-        backgroundColor: const Color(0xFF00CBA9),
+      // ----- THIS IS THE FINAL AND CORRECTED FLOATING ACTION BUTTON -----
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Received Orders Button
+          Badge(
+            label: Text(_pendingOrderCount.toString()),
+            isLabelVisible: _pendingOrderCount > 0,
+            backgroundColor: const Color(0xFF00CBA9),
+            child: FloatingActionButton(
+              heroTag: 'receivedOrdersBtn', // Prevents hero tag clash
+              onPressed: onReceivedOrders,
+              backgroundColor: const Color(0xFF00CBA9).withOpacity(0.8),
+              child: const Icon(Icons.inventory_2_outlined, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Become a Seller Button
+          FloatingActionButton.extended(
+            heroTag: 'becomeSellerBtn', // Prevents hero tag clash
+            onPressed: becomeSeller,
+            label: const Text(
+              "Become a Seller",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            icon: const Icon(Icons.store, color: Colors.white),
+            backgroundColor: const Color(0xFF00CBA9),
+          ),
+        ],
       ),
+      // ----- END OF THE CORRECTED SECTION -----
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: isLoading
             ? const Center(
                 child: CircularProgressIndicator(color: Color(0xFF00CBA9)))
             : RefreshIndicator(
-                onRefresh: loadUserData,
+                onRefresh: loadAllData,
                 color: const Color(0xFF00CBA9),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -213,7 +251,7 @@ class _UserPageState extends State<UserPage> {
                       ),
                       const SizedBox(height: 32),
                       _buildNearbyItemsSection(filteredItems),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 100), // Space for the FABs
                     ],
                   ),
                 ),
@@ -225,72 +263,54 @@ class _UserPageState extends State<UserPage> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${userName.toUpperCase()} 👋",
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Find the best products nearby!",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${widget.email.split('@')[0].toUpperCase()} 👋",
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      "Find the best products nearby!",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+              // ----- ICONS REMOVED FROM HERE FOR CLEANLINESS -----
+              IconButton( // This is your "My Orders" button
+                icon: const Icon(Icons.history, color: Colors.white, size: 28),
+                onPressed: onMyOrders,
+              ),
+              Badge(
+                label: Text(cart.length.toString()),
+                isLabelVisible: cart.isNotEmpty,
+                backgroundColor: Colors.redAccent,
+                child: IconButton(
+                  icon: const Icon(Icons.shopping_cart_outlined,
+                      color: Colors.white, size: 28),
+                  onPressed: goToCartPage,
                 ),
               ),
-              Row(
-                children: [
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.shopping_cart_outlined,
-                            color: Colors.white, size: 28),
-                        onPressed: goToCartPage,
-                      ),
-                      if (cart.isNotEmpty)
-                        Positioned(
-                          right: 4,
-                          top: 4,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.redAccent,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints:
-                                const BoxConstraints(minWidth: 18, minHeight: 18),
-                            child: Text(
-                              cart.length.toString(),
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.account_circle,
-                        color: Colors.white, size: 28),
-                    onPressed: () => _showProfileMenu(context),
-                  ),
-                ],
+              IconButton(
+                icon:
+                    const Icon(Icons.account_circle, color: Colors.white, size: 28),
+                onPressed: () => _showProfileMenu(context),
               ),
             ],
           ),

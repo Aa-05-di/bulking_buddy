@@ -196,6 +196,75 @@ Future<void> placeOrderAndClearCart({required String userEmail}) async {
   }
 }
 
+// ---------- Orders ----------
+// ----- ADDED FOR PENDING COUNT -----
+Future<int> fetchPendingOrderCount(String sellerEmail) async {
+  final url = Uri.parse('$baseurl/receivedorders/pending-count/$sellerEmail');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return data['count'] ?? 0;
+  } else {
+    throw Exception('Failed to fetch pending order count: ${_msg(response.body)}');
+  }
+}
+// ----- END OF ADDED SECTION -----
+
+Future<List<dynamic>> fetchReceivedOrders(String sellerEmail) async {
+  final url = Uri.parse('$baseurl/receivedorders/$sellerEmail');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to fetch received orders: ${_msg(response.body)}');
+  }
+}
+
+Future<List<dynamic>> fetchUserOrders(String userEmail) async {
+  final url = Uri.parse('$baseurl/userorders/$userEmail');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to fetch user orders: ${_msg(response.body)}');
+  }
+}
+
+Future<void> acceptOrder({required String orderId}) async {
+  final url = Uri.parse('$baseurl/acceptorder');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'orderId': orderId}),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to accept order: ${_msg(response.body)}');
+  }
+}
+
+Future<void> sendLocation({
+  required String orderId,
+  required String location,
+}) async {
+  final url = Uri.parse('$baseurl/sendlocation');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'orderId': orderId,
+      'location': location,
+    }),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to send location: ${_msg(response.body)}');
+  }
+}
+
 
 // ---------- Utils ----------
 String _msg(String body) {
