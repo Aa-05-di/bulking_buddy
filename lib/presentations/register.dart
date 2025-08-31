@@ -1,5 +1,6 @@
 import 'package:first_pro/api/api.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui'; // Required for BackdropFilter
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -8,26 +9,22 @@ class Register extends StatefulWidget {
   _RegisterState createState() => _RegisterState();
 }
 
-class _RegisterState extends State<Register> with SingleTickerProviderStateMixin {
+class _RegisterState extends State<Register> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _locationController = TextEditingController();
   bool _isLoading = false;
+
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      duration: const Duration(milliseconds: 1200),
     );
     _animationController.forward();
   }
@@ -42,224 +39,167 @@ class _RegisterState extends State<Register> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    if (index == 1 && mounted) {
-      Navigator.pop(context); // Navigate back when "Home" is tapped
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    //final mediaQuery = MediaQuery.of(context);
-
-    return Scaffold(
-      resizeToAvoidBottomInset: false, // Prevent body resize with keyboard
-      // appBar: AppBar(
-      //   backgroundColor: Colors.teal.shade600,
-      //   elevation: 0,
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back, color: Colors.white),
-      //     onPressed: () => Navigator.pop(context),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.info_outline, color: Colors.white),
-      //       onPressed: () {
-      //         // Add terms and conditions navigation or dialog here
-      //       },
-      //     ),
-      //   ],
-      //   title: const Text(
-      //     "Create Account",
-      //     style: TextStyle(
-      //       color: Colors.white,
-      //       fontSize: 24,
-      //       fontWeight: FontWeight.bold,
-      //     ),
-      //   ),
-      // ),
-      body: Stack(
-        fit: StackFit.expand, // Ensure background covers the entire screen
-        children: [
-          _buildBackground(),
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(
-                  top: 20,
-                  left: 24,
-                  right: 24,
-                  bottom: 80, // Increased bottom padding for floating widget
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 72),
-                    _buildForm(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomSheet: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: BottomNavigationBar(
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_add),
-                  label: 'Register',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-              ],
-              currentIndex: _selectedIndex,
-              selectedItemColor: Colors.teal.shade600,
-              onTap: _onItemTapped,
-              backgroundColor: Colors.white,
-              elevation: 0,
-            ),
-          ),
-        ),
+  Animation<double> _createAnimation(double begin, double end) {
+    return Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(begin, end, curve: Curves.easeOutCubic),
       ),
     );
   }
 
-  Widget _buildBackground() {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF141A28),
+      resizeToAvoidBottomInset: false,
+      body: Stack(
+        children: [
+          _buildAnimatedBackground(),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 60),
+                  _buildHeader(),
+                  const SizedBox(height: 40),
+                  _buildGlassmorphicForm(),
+                  const SizedBox(height: 30),
+                  _buildLoginLink(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: BackButton(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedBackground() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.teal.shade700, Colors.teal.shade200],
-        ),
-      ),
-      child: Positioned.fill(
-        child: Opacity(
-          opacity: 0.1,
-          child: Image.asset(
-            'assets/bgl.jpg',
-            fit: BoxFit.cover,
-          ),
+          colors: [
+            Color(0xFF141A28),
+            Color(0xFF004D40),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Create Account",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 36,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.3,
+    return AnimatedBuilder(
+      animation: _animationController, // No error here, this is correct
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animationController.value,
+          child: Transform.translate(
+            offset: Offset(0, 50 * (1 - _animationController.value)),
+            child: child,
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          "Join us today!",
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.85),
-            fontSize: 18,
+        );
+      },
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Join the Crew",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
           ),
-        ),
-      ],
+          SizedBox(height: 8),
+          Text(
+            "Create your account to get started.",
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 18,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildForm() {
-    return Card(
-      elevation: 10,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildTextField(
-                controller: _usernameController,
-                label: "Username",
-                icon: Icons.person_outline,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Please enter a username';
-                  if (val.length < 3) return 'Minimum 3 characters required';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _emailController,
-                label: "Email",
-                icon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Please enter an email';
-                  if (!RegExp(r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$').hasMatch(val)) {
-                    return 'Enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _passwordController,
-                label: "Password",
-                icon: Icons.lock_outline,
-                obscureText: true,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Please enter a password';
-                  if (val.length < 6) return 'At least 6 characters required';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _locationController,
-                label: "Location",
-                icon: Icons.location_on_outlined,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Please enter a location';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildRegisterButton(),
-            ],
+  Widget _buildGlassmorphicForm() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(25.0),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(25.0),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.2, 0.6),
+                  controller: _usernameController,
+                  label: "Username",
+                  icon: Icons.person_outline,
+                  validator: (val) => val!.isEmpty ? 'Username is required' : null,
+                ),
+                const SizedBox(height: 16),
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.3, 0.7),
+                  controller: _emailController,
+                  label: "Email",
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (val) => !(val?.contains('@') ?? false) ? 'Enter a valid email' : null,
+                ),
+                const SizedBox(height: 16),
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.4, 0.8),
+                  controller: _passwordController,
+                  label: "Password",
+                  icon: Icons.lock_outline,
+                  obscureText: true,
+                  validator: (val) => (val?.length ?? 0) < 6 ? 'Password must be 6+ characters' : null,
+                ),
+                const SizedBox(height: 16),
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.5, 0.9),
+                  controller: _locationController,
+                  label: "Location",
+                  icon: Icons.location_on_outlined,
+                  validator: (val) => val!.isEmpty ? 'Location is required' : null,
+                ),
+                const SizedBox(height: 30),
+                _buildRegisterButton(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
+  // ----- THIS WIDGET IS CORRECTED -----
+  Widget _buildAnimatedTextField({
+    required Animation<double> animation,
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -267,57 +207,114 @@ class _RegisterState extends State<Register> with SingleTickerProviderStateMixin
     TextInputType? keyboardType,
     required String? Function(String?) validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.teal.shade700),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    // The animation object passed in is already correct.
+    // The builder just needs to know about it.
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: animation.value, // Now it can see 'animation'
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - animation.value)),
+            child: child,
+          ),
+        );
+      },
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Icon(icon, color: const Color(0xFF00CBA9)),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(color: Color(0xFF00CBA9), width: 2),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.teal.shade700, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red.shade300, width: 2),
-        ),
+        validator: validator,
       ),
-      validator: validator,
     );
   }
 
+  // ----- THIS WIDGET IS CORRECTED -----
   Widget _buildRegisterButton() {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : _onRegister,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.teal.shade600,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    // 1. Create the animation and store it in a local variable.
+    final Animation<double> animation = _createAnimation(0.6, 1.0);
+    
+    // 2. Return the AnimatedBuilder.
+    return AnimatedBuilder(
+      animation: animation, // 3. Use the local variable here.
+      builder: (context, child) {
+         return Opacity(
+          // 4. And now the builder can access the same variable.
+          opacity: animation.value,
+          child: Transform.scale(
+            scale: animation.value,
+            child: child,
+          ),
+        );
+      },
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _onRegister,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF00CBA9),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 5,
+          minimumSize: const Size(double.infinity, 50),
         ),
-        elevation: 4,
-      ),
-      child: _isLoading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
+        child: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+              )
+            : const Text(
+                "Create Account",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            )
-          : const Text(
-              "Register",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  // ----- THIS WIDGET IS CORRECTED -----
+  Widget _buildLoginLink() {
+    final Animation<double> animation = _createAnimation(0.7, 1.0);
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: animation.value,
+          child: child,
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("Already have an account?", style: TextStyle(color: Colors.white70)),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Log In",
+              style: TextStyle(
+                color: Color(0xFF00CBA9),
+                fontWeight: FontWeight.bold,
+              ),
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -332,36 +329,25 @@ class _RegisterState extends State<Register> with SingleTickerProviderStateMixin
           location: _locationController.text.trim(),
         );
 
-        if (result == "Registration successful") {
-          _usernameController.clear();
-          _passwordController.clear();
-          _emailController.clear();
-          _locationController.clear();
-          if (mounted) {
-            Navigator.pop(context); // Navigate back on success
-          }
-        }
-
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result),
               backgroundColor: result == "Registration successful"
-                  ? Colors.green.shade600
+                  ? const Color(0xFF00CBA9)
                   : Colors.red.shade600,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
+          if (result == "Registration successful") {
+            Navigator.pop(context);
+          }
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: \${e.toString()}'),
+              content: Text('Error: ${e.toString()}'),
               backgroundColor: Colors.red.shade600,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }

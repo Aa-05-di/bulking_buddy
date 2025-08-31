@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:ui'; // Required for BackdropFilter
 
 const String baseUrl = "http://10.0.2.2:8000";
 
@@ -11,7 +12,7 @@ class Seller extends StatefulWidget {
   State<Seller> createState() => _SellerState();
 }
 
-class _SellerState extends State<Seller> {
+class _SellerState extends State<Seller> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _photoController = TextEditingController();
@@ -23,6 +24,41 @@ class _SellerState extends State<Seller> {
 
   bool _isSubmitting = false;
 
+  // --- ADDED FOR ANIMATIONS ---
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _photoController.dispose();
+    _itemNameController.dispose();
+    _priceController.dispose();
+    _proteinController.dispose();
+    _sellerEmailController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  Animation<double> _createAnimation(double begin, double end) {
+    return Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Interval(begin, end, curve: Curves.easeOutCubic),
+      ),
+    );
+  }
+  // --- END OF ANIMATION SETUP ---
+
   Future<void> _submitItem() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -30,163 +66,283 @@ class _SellerState extends State<Seller> {
 
     final url = Uri.parse('$baseUrl/additem');
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'photo': _photoController.text.trim(),
-        'itemname': _itemNameController.text.trim(),
-        'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
-        'protein': _proteinController.text.trim(),
-        'seller': _sellerEmailController.text.trim(),
-        'location': _locationController.text.trim(),
-      }),
-    );
-
-    setState(() => _isSubmitting = false);
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Item added successfully!'), backgroundColor: Colors.tealAccent),
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'photo': _photoController.text.trim(),
+          'itemname': _itemNameController.text.trim(),
+          'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
+          'protein': _proteinController.text.trim(),
+          'seller': _sellerEmailController.text.trim(),
+          'location': _locationController.text.trim(),
+        }),
       );
-      _formKey.currentState!.reset();
-      _photoController.clear();
-      _itemNameController.clear();
-      _priceController.clear();
-      _proteinController.clear();
-      _sellerEmailController.clear();
-      _locationController.clear();
-    } else {
-      final msg = jsonDecode(response.body)['message'] ?? 'Error occurred';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: $msg'), backgroundColor: Colors.red),
-      );
+
+      if (mounted) {
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Item added successfully!'),
+                backgroundColor: Color(0xFF00CBA9)),
+          );
+          _formKey.currentState!.reset();
+          _photoController.clear();
+          _itemNameController.clear();
+          _priceController.clear();
+          _proteinController.clear();
+          _sellerEmailController.clear();
+          _locationController.clear();
+        } else {
+          final msg = jsonDecode(response.body)['message'] ?? 'Error occurred';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed: $msg'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('An error occurred: ${e.toString()}'),
+              backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
-  }
-
-  Widget _buildTextField(
-      {required String label,
-      required IconData icon,
-      required TextEditingController controller,
-      bool isNumber = false,
-      bool isRequired = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        validator: isRequired
-            ? (val) => val == null || val.isEmpty ? 'Enter $label' : null
-            : null,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon),
-          floatingLabelBehavior: FloatingLabelBehavior.auto,
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.9),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        //title: const Text("Add Product"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white,Colors.teal,Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: ListView(
+      backgroundColor: const Color(0xFF141A28),
+      body: Stack(
+        children: [
+          _buildAnimatedBackground(),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
                 children: [
-                  const Text(
-                    "Enter Product Details",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 1.1,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 30),
-
-                  _buildTextField(
-                    label: "Image URL",
-                    icon: Icons.image,
-                    controller: _photoController,
-                  ),
-                  _buildTextField(
-                    label: "Item Name",
-                    icon: Icons.shopping_bag,
-                    controller: _itemNameController,
-                    isRequired: true,
-                  ),
-                  _buildTextField(
-                    label: "Price (₹)",
-                    icon: Icons.currency_rupee,
-                    controller: _priceController,
-                    isRequired: true,
-                    isNumber: true,
-                  ),
-                  _buildTextField(
-                    label: "Protein (e.g. 3g)",
-                    icon: Icons.local_dining,
-                    controller: _proteinController,
-                  ),
-                  _buildTextField(
-                    label: "Your Email (Seller)",
-                    icon: Icons.email,
-                    controller: _sellerEmailController,
-                    isRequired: true,
-                  ),
-                  _buildTextField(
-                    label: "Location",
-                    icon: Icons.location_on,
-                    controller: _locationController,
-                    isRequired: true,
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  ElevatedButton.icon(
-                    onPressed: _isSubmitting ? null : _submitItem,
-                    icon: const Icon(Icons.send),
-                    label: Text(_isSubmitting ? "Submitting..." : "Submit"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      textStyle: const TextStyle(fontSize: 16),
-                    ),
-                  ),
+                  const SizedBox(height: 60),
+                  _buildHeader(),
+                  const SizedBox(height: 40),
+                  _buildGlassmorphicForm(),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
           ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: BackButton(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedBackground() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF141A28),
+            Color(0xFF004D40), // Darker Teal
+          ],
         ),
+      ),
+    );
+  }
+  
+  Widget _buildHeader() {
+    return AnimatedBuilder(
+      animation: _createAnimation(0.0, 0.4),
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animationController.value,
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - _animationController.value)),
+            child: child,
+          ),
+        );
+      },
+      child: const Text(
+        "Add New Product",
+        style: TextStyle(
+          fontSize: 36,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          letterSpacing: 1.2,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  // ----- Redesigned with Glassmorphism -----
+// ----- Redesigned with Glassmorphism -----
+  Widget _buildGlassmorphicForm() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(25.0),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(25.0),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.2, 0.6),
+                  controller: _photoController,
+                  label: "Image URL",
+                  icon: Icons.image_outlined,
+                ),
+                const SizedBox(height: 16), // Added for spacing
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.3, 0.7),
+                  controller: _itemNameController,
+                  label: "Item Name",
+                  icon: Icons.shopping_bag_outlined,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16), // Added for spacing
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.4, 0.8),
+                  controller: _priceController,
+                  label: "Price (₹)",
+                  icon: Icons.currency_rupee,
+                  isNumber: true,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16), // Added for spacing
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.5, 0.9),
+                  controller: _proteinController,
+                  label: "Protein (e.g., 25g)",
+                  icon: Icons.fitness_center,
+                ),
+                 const SizedBox(height: 16), // Added for spacing
+                 _buildAnimatedTextField(
+                  animation: _createAnimation(0.6, 1.0),
+                  controller: _sellerEmailController,
+                  label: "Your Email (Seller)",
+                  icon: Icons.email_outlined,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16), // Added for spacing
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.7, 1.0),
+                  controller: _locationController,
+                  label: "Location",
+                  icon: Icons.location_on_outlined,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 30),
+                _buildSubmitButton(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper for animated text fields with consistent futuristic styling
+  Widget _buildAnimatedTextField({
+    required Animation<double> animation,
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isNumber = false,
+    bool isRequired = false,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: animation.value,
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - animation.value)),
+            child: child,
+          ),
+        );
+      },
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        style: const TextStyle(color: Colors.white),
+        validator: isRequired
+            ? (val) => val == null || val.isEmpty ? 'This field is required' : null
+            : null,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Icon(icon, color: const Color(0xFF00CBA9)),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(color: Color(0xFF00CBA9), width: 2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return AnimatedBuilder(
+      animation: _createAnimation(0.8, 1.0),
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animationController.value,
+          child: Transform.scale(
+            scale: _animationController.value,
+            child: child,
+          ),
+        );
+      },
+      child: ElevatedButton(
+        onPressed: _isSubmitting ? null : _submitItem,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF00CBA9),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 5,
+          minimumSize: const Size(double.infinity, 50),
+        ),
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+              )
+            : const Text(
+                "Submit Product",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
