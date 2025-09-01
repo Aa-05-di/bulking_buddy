@@ -1,7 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-const String baseurl = "http://10.0.2.2:8000";
+
+const String baseurl = "https://backend-bulkbuddy.onrender.com";
 
 // ---------- Auth ----------
 Future<String> registerUser({
