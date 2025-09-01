@@ -6,7 +6,7 @@ import 'package:first_pro/presentations/cart.dart';
 import 'package:first_pro/presentations/seller.dart';
 import 'package:first_pro/presentations/login.dart';
 import '../core/itemcard.dart';
-import 'dart:ui'; // Required for BackdropFilter
+import 'dart:ui'; 
 
 class UserPage extends StatefulWidget {
   final String email;
@@ -17,16 +17,22 @@ class UserPage extends StatefulWidget {
   State<UserPage> createState() => _UserPageState();
 }
 
-// ----- ADDED FOR ANIMATIONS -----
 class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
+  // Existing state
   List<dynamic> items = [];
   List<dynamic> cart = [];
   bool isLoading = true;
   String userName = '';
   String searchQuery = '';
   int _pendingOrderCount = 0;
-
   late AnimationController _animationController;
+
+  // ----- ADDED FOR AI WORKOUT PLANNER -----
+  final _weightController = TextEditingController();
+  int _totalProteinToday = 0;
+  Map<String, dynamic>? _workoutPlan;
+  bool _isGeneratingPlan = false;
+  // ----- END OF NEW STATE -----
 
   @override
   void initState() {
@@ -41,10 +47,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
-  
-  // Helper for staggered animations
+
   Animation<double> _createAnimation(double begin, double end) {
     return Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -53,21 +59,17 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       ),
     );
   }
-  // ----- END OF ANIMATION SETUP -----
 
   Future<void> loadAllData() async {
     if (!mounted) return;
-    // Don't set isLoading to true if we're just refreshing
     if (_animationController.status != AnimationStatus.completed) {
-      setState(() {
-        isLoading = true;
-      });
+      setState(() => isLoading = true);
     }
-
     try {
       final results = await Future.wait([
         fetchProfileData(widget.email),
         fetchPendingOrderCount(widget.email),
+        fetchTotalProteinToday(widget.email),
       ]);
 
       final userData = results[0] as Map<String, dynamic>;
@@ -77,17 +79,58 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
           cart = userData['cart'] ?? [];
           userName = userData['username'] ?? 'User';
           _pendingOrderCount = results[1] as int;
+          _totalProteinToday = results[2] as int;
         });
       }
     } catch (e) {
       print("Error loading all data: $e");
     } finally {
       if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-        // Start animations after data is loaded
+        setState(() => isLoading = false);
         _animationController.forward();
+      }
+    }
+  }
+
+  // ----- MOVED THIS FUNCTION INSIDE THE CLASS -----
+  void _generateWorkoutPlan() async {
+    final double? weight = double.tryParse(_weightController.text);
+
+    if (weight == null || weight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a valid weight."),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isGeneratingPlan = true);
+
+    try {
+      final plan = await generateWorkoutPlan(
+        weight: weight,
+        proteinToday: _totalProteinToday,
+        userEmail: widget.email,
+      );
+      if (mounted) {
+        setState(() {
+          _workoutPlan = plan;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to generate plan: ${e.toString()}"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingPlan = false);
       }
     }
   }
@@ -112,9 +155,9 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       await addToUserCart(userEmail: widget.email, itemId: itemId);
       await loadUserData();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${product['itemname']} added to cart!'),
-          backgroundColor: const Color(0xFF00CBA9),
+        const SnackBar(
+          content: Text('Item added to cart!'),
+          backgroundColor: Color(0xFF00CBA9),
         ),
       );
     } catch (e) {
@@ -142,9 +185,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
           },
           onQuantityChanged: (itemId, newCount) async {
             await updateCartQuantity(
-                userEmail: widget.email,
-                itemId: itemId,
-                newQuantity: newCount);
+              userEmail: widget.email,
+              itemId: itemId,
+              newQuantity: newCount,
+            );
             await loadUserData();
           },
           onCheckout: () async {
@@ -190,8 +234,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero),
-            ancestor: overlay),
+        button.localToGlobal(
+          button.size.bottomRight(Offset.zero),
+          ancestor: overlay,
+        ),
       ),
       Offset.zero & overlay.size,
     );
@@ -232,11 +278,12 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: const Color(0xFF141A28),
-      floatingActionButton: _buildAnimatedFAB(), // Updated to be animated
+      floatingActionButton: _buildAnimatedFAB(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00CBA9)))
+              child: CircularProgressIndicator(color: Color(0xFF00CBA9)),
+            )
           : Stack(
               children: [
                 _buildAnimatedBackground(),
@@ -255,7 +302,9 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                           _buildSearchBar(),
                           const SizedBox(height: 32),
                           _buildNearbyItemsSection(filteredItems),
-                          const SizedBox(height: 100), // Space for the FABs
+                          const SizedBox(height: 32),
+                          _buildAiWorkoutPlanner(),
+                          const SizedBox(height: 100),
                         ],
                       ),
                     ),
@@ -265,18 +314,14 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
             ),
     );
   }
-  
-  // ----- NEW WIDGET FOR ANIMATED BACKGROUND -----
+
   Widget _buildAnimatedBackground() {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF141A28),
-            Color(0xFF004D40), // Darker Teal
-          ],
+          colors: [Color(0xFF141A28), Color(0xFF004D40)],
         ),
       ),
     );
@@ -313,10 +358,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                   const SizedBox(height: 4),
                   const Text(
                     "Find the best products nearby!",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ],
               ),
@@ -324,7 +366,11 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.history, color: Colors.white, size: 28),
+                  icon: const Icon(
+                    Icons.history,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                   onPressed: onMyOrders,
                 ),
                 Badge(
@@ -332,14 +378,20 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                   isLabelVisible: cart.isNotEmpty,
                   backgroundColor: Colors.redAccent,
                   child: IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
-                        color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.shopping_cart_outlined,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: goToCartPage,
                   ),
                 ),
                 IconButton(
-                  icon:
-                      const Icon(Icons.account_circle, color: Colors.white, size: 28),
+                  icon: const Icon(
+                    Icons.account_circle,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                   onPressed: () => _showProfileMenu(context),
                 ),
               ],
@@ -360,7 +412,6 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
           child: child,
         ),
       ),
-      // ----- REDESIGNED WITH GLASSMORPHISM -----
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: ClipRRect(
@@ -377,8 +428,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                 onChanged: (val) => setState(() => searchQuery = val),
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
                   hintText: "Search items...",
                   hintStyle: TextStyle(color: Colors.white54),
                   prefixIcon: Icon(Icons.search, color: Colors.white54),
@@ -423,7 +476,9 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                   child: const Text(
                     "See All",
                     style: TextStyle(
-                        color: Color(0xFF00CBA9), fontWeight: FontWeight.bold),
+                      color: Color(0xFF00CBA9),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -436,7 +491,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                   child: Center(
                     child: Text(
                       "No nearby items found.",
-                      style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.7)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
                     ),
                   ),
                 )
@@ -465,16 +523,13 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildAnimatedFAB() {
     return AnimatedBuilder(
       animation: _createAnimation(0.6, 1.0),
       builder: (context, child) => Transform.scale(
         scale: _animationController.value,
-        child: Opacity(
-          opacity: _animationController.value,
-          child: child
-        ),
+        child: Opacity(opacity: _animationController.value, child: child),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -487,7 +542,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
               heroTag: 'receivedOrdersBtn',
               onPressed: onReceivedOrders,
               backgroundColor: const Color(0xFF00CBA9).withOpacity(0.8),
-              child: const Icon(Icons.inventory_2_outlined, color: Colors.white),
+              child: const Icon(
+                Icons.inventory_2_outlined,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -496,11 +554,172 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
             onPressed: becomeSeller,
             label: const Text(
               "Become a Seller",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             icon: const Icon(Icons.store, color: Colors.white),
             backgroundColor: const Color(0xFF00CBA9),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiWorkoutPlanner() {
+    return AnimatedBuilder(
+      animation: _createAnimation(0.5, 1.0),
+      builder: (context, child) => Opacity(
+        opacity: _animationController.value,
+        child: Transform.translate(
+          offset: Offset(0, 30 * (1 - _animationController.value)),
+          child: child,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25.0),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+            child: Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25.0),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        color: Color(0xFF00CBA9),
+                        size: 28,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        "AI Workout Planner",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Based on your protein purchased today: ${_totalProteinToday}g",
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _weightController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Your Current Weight (kg)",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      prefixIcon: const Icon(
+                        Icons.monitor_weight_outlined,
+                        color: Color(0xFF00CBA9),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF00CBA9),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _isGeneratingPlan ? null : _generateWorkoutPlan,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00CBA9),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: _isGeneratingPlan
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                        : const Text(
+                            "Generate Today's Plan",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                  if (_workoutPlan != null) _buildPlanResult(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlanResult() {
+    final exercisesList = _workoutPlan!['exercises'] as List;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(color: Colors.white24),
+          const SizedBox(height: 16),
+          Text(
+            _workoutPlan!['fact'],
+            style: const TextStyle(
+              color: Colors.white,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ...exercisesList.map((exercise) {
+            final exerciseMap = exercise as Map<String, dynamic>;
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(
+                Icons.fitness_center,
+                color: Color(0xFF00CBA9),
+              ),
+              title: Text(
+                exerciseMap['name'].toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                "Sets: ${exerciseMap['sets']} | Reps: ${exerciseMap['reps']}",
+                style: const TextStyle(color: Colors.white70),
+              ),
+            );
+          }).toList(),
         ],
       ),
     );

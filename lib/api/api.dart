@@ -265,6 +265,44 @@ Future<void> sendLocation({
   }
 }
 
+// ----- ADDED FOR AI WORKOUT PLANNER -----
+Future<int> fetchTotalProteinToday(String userEmail) async {
+  final url = Uri.parse('$baseurl/orders/proteintoday/$userEmail');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    // Use tryParse to handle potential nulls or non-integer values gracefully
+    return int.tryParse(data['totalProteinToday'].toString()) ?? 0;
+  } else {
+    throw Exception('Failed to fetch today\'s protein intake: ${_msg(response.body)}');
+  }
+}
+
+// in api.dart
+
+Future<Map<String, dynamic>> generateWorkoutPlan({
+  required double weight,
+  required int proteinToday,
+  required String userEmail, // <-- ADD THIS
+}) async {
+  final url = Uri.parse('$baseurl/generate-workout');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'weight': weight,
+      'proteinToday': proteinToday,
+      'userEmail': userEmail, // <-- AND THIS
+    }),
+  );
+  // ... (rest of the function is the same)
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to generate AI workout plan: ${_msg(response.body)}');
+  }
+}
 
 // ---------- Utils ----------
 String _msg(String body) {

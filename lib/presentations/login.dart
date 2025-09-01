@@ -126,7 +126,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           // A subtle blur over the image to blend it more with the design
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0), // Adjust blur as needed
+              filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 2.0), // Adjust blur as needed
               child: Container(
                 color: Colors.transparent, // Required to make the blur visible
               ),

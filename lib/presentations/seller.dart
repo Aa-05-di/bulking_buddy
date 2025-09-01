@@ -212,7 +212,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.2, 0.6),
                   controller: _photoController,
-                  label: "Image URL",
+                  label: "Image URL(https)",
                   icon: Icons.image_outlined,
                 ),
                 const SizedBox(height: 16), // Added for spacing
