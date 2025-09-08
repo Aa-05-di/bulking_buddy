@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.8.1 <4.0.0' # Updated to a valid constraint based on your input
+  sdk: '>=3.8.1 <4.0.0'
 
 dependencies:
   flutter:
@@ -21,12 +21,13 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   lottie: ^3.3.1
   animated_text_kit: ^4.2.3
-  # flutter_native_splash has been MOVED from here
-
+  # flutter_launcher_icons is a dev dependency, moved below
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4 # Correctly placed here
 
 flutter:
   uses-material-design: true
@@ -34,10 +35,20 @@ flutter:
     - assets/bgl.jpg
     - assets/splash.png
     - assets/shopping cart.json
+    - assets/intro_login.png
+    - assets/intro_register.png
+    - assets/intro_welcome.png
+    - assets/Splash.png # Make sure you have this file from before
 
-# ✅ CORRECT PLACEMENT: At the end of the file with NO indentation
 flutter_native_splash:
-  color: "#141A28" 
-  image: assets/splash.png
+  color: "#141A28"
   android: true
   ios: true
+
+# This is for your homescreen icon.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/splash.png"
+  adaptive_icon_background: "#141A28"
+  adaptive_icon_foreground: "assets/Splash.png"

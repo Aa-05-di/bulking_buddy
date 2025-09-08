@@ -67,7 +67,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen> {
                 TyperAnimatedText(
                   'Bulking Buddy',
                   textStyle: textStyle.copyWith(color: Colors.white),
-                  speed: const Duration(milliseconds: 70),
+                  speed: const Duration(milliseconds: 100),
                 ),
                 
                 ColorizeAnimatedText(

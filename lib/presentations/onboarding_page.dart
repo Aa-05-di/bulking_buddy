@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login.dart'; 
+import 'login.dart';
 
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
 
-  
   void _onIntroEnd(BuildContext context) async {
-    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenIntro', true);
 
-    
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const Login()),
     );
@@ -20,40 +17,89 @@ class OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const pageDecoration = PageDecoration(
-      titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w700, color: Colors.white),
-      bodyTextStyle: TextStyle(fontSize: 19.0, color: Colors.white70),
-      bodyPadding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-      pageColor: Color(0xFF141A28),
-      imagePadding: EdgeInsets.zero,
-    );
+    final double screenHeight = MediaQuery.of(context).size.height;
 
     return IntroductionScreen(
+      globalBackgroundColor: const Color(0xFF141A28),
       pages: [
         PageViewModel(
-          title: "Welcome to Bulking Buddy",
-          body: "Find the best high-protein meals and sellers right in your neighborhood.",
-          // image: Image.asset('assets/intro1.png'), // Add your image here
-          image: const Center(child: Icon(Icons.fitness_center, size: 150, color: Color(0xFF00CBA9))),
-          decoration: pageDecoration,
+          titleWidget: const SizedBox.shrink(), // remove default title
+          bodyWidget: Column(
+            children: [
+              SizedBox(
+                height: screenHeight * 0.75, // 3/4 of screen
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset('assets/intro_welcome.png', fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Welcome to Bulking Buddy",
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700, color: Colors.white),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Discover high-protein meals and get AI-powered workout plans tailored to your daily intake.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16.0, color: Colors.white70),
+              ),
+            ],
+          ),
         ),
         PageViewModel(
-          title: "Sign Up & Get Started",
-          body: "Create an account to start your journey. Sellers and buyers welcome!",
-          // image: Image.asset('assets/intro2.png'), // Add your image here
-          image: const Center(child: Icon(Icons.person_add, size: 150, color: Color(0xFF00CBA9))),
-          decoration: pageDecoration,
+          titleWidget: const SizedBox.shrink(),
+          bodyWidget: Column(
+            children: [
+              SizedBox(
+                height: screenHeight * 0.75,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset('assets/intro_login.png', fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Log In to Your Account",
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700, color: Colors.white),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Access your dashboard, track orders, and continue your fitness journey.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16.0, color: Colors.white70),
+              ),
+            ],
+          ),
         ),
         PageViewModel(
-          title: "Order & Track",
-          body: "Easily place orders, track their status, and communicate with sellers for a seamless experience.",
-          // image: Image.asset('assets/intro3.png'), // Add your image here
-          image: const Center(child: Icon(Icons.local_shipping, size: 150, color: Color(0xFF00CBA9))),
-          decoration: pageDecoration,
+          titleWidget: const SizedBox.shrink(),
+          bodyWidget: Column(
+            children: [
+              SizedBox(
+                height: screenHeight * 0.75,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset('assets/intro_register.png', fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Register to Get Started",
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700, color: Colors.white),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "New here? Create an account to start buying or to become a seller yourself!",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16.0, color: Colors.white70),
+              ),
+            ],
+          ),
         ),
       ],
       onDone: () => _onIntroEnd(context),
-      onSkip: () => _onIntroEnd(context), // You can also allow users to skip
+      onSkip: () => _onIntroEnd(context),
       showSkipButton: true,
       skip: const Text('Skip', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white70)),
       next: const Icon(Icons.arrow_forward, color: Color(0xFF00CBA9)),
