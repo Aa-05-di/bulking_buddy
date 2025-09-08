@@ -1,12 +1,14 @@
 import 'package:first_pro/core/cartitem.dart';
 import 'package:first_pro/presentations/checkout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:lottie/lottie.dart';
 
 class Cart extends StatefulWidget {
   final List<dynamic> cartItems;
   final Function(String) onItemRemoved;
   final Function(String, int) onQuantityChanged;
-  final Future<void> Function() onCheckout; // Correct type
+  final Future<void> Function() onCheckout;
 
   const Cart({
     super.key,
@@ -22,11 +24,13 @@ class Cart extends StatefulWidget {
 
 class _CartState extends State<Cart> {
   late Map<String, int> _itemQuantities;
+  late List<dynamic> _localCartItems;
 
   @override
   void initState() {
     super.initState();
     _itemQuantities = _initializeQuantities(widget.cartItems);
+    _localCartItems = List.from(widget.cartItems);
   }
 
   @override
@@ -34,6 +38,9 @@ class _CartState extends State<Cart> {
     super.didUpdateWidget(oldWidget);
     if (widget.cartItems != oldWidget.cartItems) {
       _itemQuantities = _initializeQuantities(widget.cartItems);
+      setState(() {
+        _localCartItems = List.from(widget.cartItems);
+      });
     }
   }
 
@@ -70,13 +77,17 @@ class _CartState extends State<Cart> {
   }
 
   void _removeItem(String itemId) {
+    setState(() {
+      _localCartItems.removeWhere((item) {
+        final itemData = item['productId'] ?? item;
+        return itemData['_id'] == itemId;
+      });
+    });
     widget.onItemRemoved(itemId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final validCartItems = widget.cartItems.where((item) => item is Map && (item['productId'] is Map || item['itemname'] is String)).toList();
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: const Color(0xFF141A28),
@@ -94,53 +105,44 @@ class _CartState extends State<Cart> {
         iconTheme: const IconThemeData(color: Color(0xFF00CBA9)),
       ),
       body: SafeArea(
-        child: validCartItems.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.shopping_cart_outlined,
-                        size: 100, color: Color(0xFF00CBA9)),
-                    const SizedBox(height: 20),
-                    Text(
-                      "Your cart is empty!",
-                      style: TextStyle(
-                          fontSize: 20, color: Colors.white.withOpacity(0.8)),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Go back to add some delicious items.",
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.white.withOpacity(0.5)),
-                    ),
-                  ],
-                ),
-              )
+        child: _localCartItems.isEmpty
+            ? const EmptyCartAnimation()
             : Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: validCartItems.length,
-                        itemBuilder: (context, index) {
-                          final item = validCartItems[index];
-                          final itemData = item['productId'] ?? item;
-                          final itemId = itemData['_id'] as String;
-                          final quantity = _itemQuantities[itemId] ?? 1;
-                          
-                          return CartItemCard(
-                            imagePath: itemData['photo'] ?? '',
-                            itemName: itemData['itemname'] ?? 'Unnamed Item',
-                            price: '₹${itemData['price'] ?? 'N/A'}',
-                            protein: itemData['protein'] ?? 'N/A',
-                            quantity: quantity,
-                            onIncrement: () => _incrementQuantity(itemId),
-                            onDecrement: () => _decrementQuantity(itemId),
-                            onRemove: () => _removeItem(itemId),
-                          );
-                        },
+                      child: AnimationLimiter(
+                        child: ListView.builder(
+                          itemCount: _localCartItems.length,
+                          itemBuilder: (context, index) {
+                            final item = _localCartItems[index];
+                            final itemData = item['productId'] ?? item;
+                            final itemId = itemData['_id'] as String;
+                            final quantity = _itemQuantities[itemId] ?? 1;
+                            
+                            return AnimationConfiguration.staggeredList(
+                              position: index,
+                              duration: const Duration(milliseconds: 375),
+                              child: SlideAnimation(
+                                verticalOffset: 50.0,
+                                child: FadeInAnimation(
+                                  child: CartItemCard(
+                                    imagePath: itemData['photo'] ?? '',
+                                    itemName: itemData['itemname'] ?? 'Unnamed Item',
+                                    price: '₹${itemData['price'] ?? 'N/A'}',
+                                    protein: itemData['protein'] ?? 'N/A',
+                                    quantity: quantity,
+                                    onIncrement: () => _incrementQuantity(itemId),
+                                    onDecrement: () => _decrementQuantity(itemId),
+                                    onRemove: () => _removeItem(itemId),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                     _buildCheckoutButton(),
@@ -157,19 +159,20 @@ class _CartState extends State<Cart> {
       child: Center(
         child: ElevatedButton(
           onPressed: () async {
-            // Wait for the checkout page to be popped
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => CheckoutPage(
-                  cartItems: widget.cartItems,
+                  cartItems: _localCartItems,
                 ),
               ),
             );
-
-            // If the result is 'order_placed', then call the async function
+            
             if (result == 'order_placed') {
               await widget.onCheckout();
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
             }
           },
           style: ElevatedButton.styleFrom(
@@ -188,6 +191,39 @@ class _CartState extends State<Cart> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// This new widget displays the Lottie animation for the empty cart state.
+class EmptyCartAnimation extends StatelessWidget {
+  const EmptyCartAnimation({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Lottie.asset(
+            'assets/shopping cart.json',
+            width: 250,
+            height: 250,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Your cart is empty!",
+            style: TextStyle(
+                fontSize: 20, color: Colors.white.withOpacity(0.8)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Go back to add some delicious items.",
+            style: TextStyle(
+                fontSize: 16, color: Colors.white.withOpacity(0.5)),
+          ),
+        ],
       ),
     );
   }

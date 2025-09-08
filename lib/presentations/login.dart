@@ -18,12 +18,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // For the title animation
   final List<Map<String, dynamic>> fontData = [
-    {'text': 'Bulking Buddy', 'style': GoogleFonts.orbitron},
-    {'text': 'بولكينج بدي', 'style': GoogleFonts.notoKufiArabic},
-    {'text': 'பல்கிங் படி', 'style': GoogleFonts.kavivanar},
-    {'text': 'बलकिंग बड्डी', 'style': GoogleFonts.chilanka},
+    // Set the size for English to be slightly smaller
+    {'text': 'Bulking Buddy', 'style': GoogleFonts.orbitron, 'size': 38.0},
+
+    // Keep the other languages at the original size
+    {'text': 'بولكينج بدي', 'style': GoogleFonts.notoKufiArabic, 'size': 42.0},
+    {'text': 'பல்கிங் படி', 'style': GoogleFonts.kavivanar, 'size': 42.0},
+    {'text': 'बलकिंग बड्डी', 'style': GoogleFonts.chilanka, 'size': 35.0},
   ];
   int _currentFontIndex = 0;
   Timer? _titleTimer;
@@ -85,7 +87,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                 children: [
                   const Spacer(flex: 2),
                   _buildTitle(),
-                  const Spacer(flex: 1),
+                  const Spacer(flex: 2),
                   _buildGlassmorphicForm(),
                   const Spacer(flex: 2),
                   _buildRegisterLink(),
@@ -119,14 +121,18 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             child: Image.asset(
               'assets/bgl.jpg',
               fit: BoxFit.cover,
-              alignment: Alignment.bottomCenter, // Keeps the relevant part of the image visible
+              alignment: Alignment
+                  .bottomCenter, // Keeps the relevant part of the image visible
               opacity: const AlwaysStoppedAnimation(0.2), // Subtle opacity
             ),
           ),
           // A subtle blur over the image to blend it more with the design
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 2.0), // Adjust blur as needed
+              filter: ImageFilter.blur(
+                sigmaX: 1.0,
+                sigmaY: 2.0,
+              ), // Adjust blur as needed
               child: Container(
                 color: Colors.transparent, // Required to make the blur visible
               ),
@@ -138,13 +144,13 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   }
   // ----- END OF UPDATED WIDGET -----
 
+  // in login.dart
+
   Widget _buildTitle() {
     return AnimatedBuilder(
       animation: _createAnimation(0.0, 0.5),
-      builder: (context, child) => Opacity(
-        opacity: _animationController.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Opacity(opacity: _animationController.value, child: child),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 1000),
         transitionBuilder: (child, animation) =>
@@ -153,12 +159,13 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           fontData[_currentFontIndex]['text'],
           key: ValueKey<int>(_currentFontIndex),
           style: fontData[_currentFontIndex]['style'](
-            textStyle: const TextStyle(
-              fontSize: 42.0,
+            textStyle: TextStyle(
+              fontSize: fontData[_currentFontIndex]['size'],
+
               fontWeight: FontWeight.w700,
               letterSpacing: 2.0,
               color: Colors.white,
-              shadows: [
+              shadows: const [
                 Shadow(blurRadius: 10, color: Color(0xFF00CBA9)),
                 Shadow(blurRadius: 20, color: Color(0xFF00CBA9)),
               ],
@@ -172,44 +179,47 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Widget _buildGlassmorphicForm() {
     return AnimatedBuilder(
       animation: _createAnimation(0.2, 0.8),
-       builder: (context, child) => Opacity(
+      builder: (context, child) => Opacity(
         opacity: _animationController.value,
         child: Transform.translate(
           offset: Offset(0, 50 * (1 - _animationController.value)),
           child: child,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25.0),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(25.0),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25.0),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+            child: Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25.0),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                _buildTextField(
-                  controller: _emailController,
-                  label: "Email",
-                  icon: Icons.email_outlined,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _passwordController,
-                  label: "Password",
-                  icon: Icons.lock_outline,
-                  obscureText: true,
-                ),
-                const SizedBox(height: 30),
-                _buildLoginButton(),
-              ],
+              child: Column(
+                children: [
+                  _buildTextField(
+                    controller: _emailController,
+                    label: "Email",
+                    icon: Icons.email_outlined,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _passwordController,
+                    label: "Password",
+                    icon: Icons.lock_outline,
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 30),
+                  _buildLoginButton(),
+                ],
+              ),
             ),
           ),
         ),
@@ -250,10 +260,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       animation: _createAnimation(0.5, 1.0),
       builder: (context, child) => Opacity(
         opacity: _animationController.value,
-        child: Transform.scale(
-          scale: _animationController.value,
-          child: child,
-        ),
+        child: Transform.scale(scale: _animationController.value, child: child),
       ),
       child: ElevatedButton(
         onPressed: _isLoading ? null : _onLogin,
@@ -261,7 +268,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           backgroundColor: const Color(0xFF00CBA9),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           elevation: 5,
           minimumSize: const Size(double.infinity, 50),
         ),
@@ -269,7 +278,10 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               )
             : const Text(
                 "Log In",
@@ -282,10 +294,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Widget _buildRegisterLink() {
     return AnimatedBuilder(
       animation: _createAnimation(0.6, 1.0),
-      builder: (context, child) => Opacity(
-        opacity: _animationController.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Opacity(opacity: _animationController.value, child: child),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -312,7 +322,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
 
   Future<void> _onLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-       ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter both email and password."),
           backgroundColor: Colors.redAccent,
@@ -336,11 +346,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           ),
         );
       }
+      // in login.dart
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Login failed: ${e.toString()}"),
+            content: Text(
+              "Login failed: ${e.toString()}",
+            ), // This shows the ugly error
             backgroundColor: Colors.redAccent,
           ),
         );

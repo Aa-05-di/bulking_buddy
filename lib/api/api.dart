@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 
-const String baseurl = "http://192.168.1.5:8000";
+const String baseurl = "http://10.0.2.2:2000";
 // ---------- Auth ----------
 Future<String> registerUser({
   required String username,

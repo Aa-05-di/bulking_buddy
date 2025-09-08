@@ -17,6 +17,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   introduction_screen: ^4.0.0
   shared_preferences: ^2.5.3
+  image_picker: ^1.2.0
+  flutter_staggered_animations: ^1.1.1
+  lottie: ^3.3.1
   # flutter_native_splash has been MOVED from here
 
 dev_dependencies:
@@ -29,6 +32,7 @@ flutter:
   assets:
     - assets/bgl.jpg
     - assets/splash.png
+    - assets/shopping cart.json
 
 # ✅ CORRECT PLACEMENT: At the end of the file with NO indentation
 flutter_native_splash:

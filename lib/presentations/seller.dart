@@ -1,9 +1,10 @@
+import 'package:first_pro/utils/error_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:ui'; // Required for BackdropFilter
-
-const String baseUrl = "http://10.0.2.2:8000";
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http; // You still need this for the image upload part
+import 'dart:convert'; // You still need this for the image upload part
+import '../api/api.dart'; // <-- Import your API file
 
 class Seller extends StatefulWidget {
   const Seller({super.key});
@@ -23,8 +24,8 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
   final TextEditingController _locationController = TextEditingController();
 
   bool _isSubmitting = false;
-
-  // --- ADDED FOR ANIMATIONS ---
+  bool _isUploading = false;
+  
   late AnimationController _animationController;
 
   @override
@@ -57,57 +58,82 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
       ),
     );
   }
-  // --- END OF ANIMATION SETUP ---
 
+  Future<void> _takeAndUploadPicture() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
+
+    if (image == null) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      const String cloudName = "dhilf7vjy";
+      const String uploadPreset = "bulking_buddy_preset";
+
+      final url = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/image/upload");
+      
+      final request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', image.path));
+
+      final response = await request.send();
+      
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final responseJson = json.decode(responseData);
+        final String imageUrl = responseJson['secure_url'];
+        if(mounted) setState(() => _photoController.text = imageUrl);
+      } else {
+        if(mounted) ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image upload failed.'), backgroundColor: Colors.red),
+          );
+      }
+    } catch (e) {
+      print("Error uploading image: $e");
+       if(mounted) ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error uploading image.'), backgroundColor: Colors.red),
+          );
+    } finally {
+       if(mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  // ----- THIS FUNCTION IS NOW CLEAN AND USES API.DART -----
   Future<void> _submitItem() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
-    final url = Uri.parse('$baseUrl/additem');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'photo': _photoController.text.trim(),
-          'itemname': _itemNameController.text.trim(),
-          'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
-          'protein': _proteinController.text.trim(),
-          'seller': _sellerEmailController.text.trim(),
-          'location': _locationController.text.trim(),
-        }),
+      // Call the function from your api.dart file
+      final result = await addItem(
+        photo: _photoController.text.trim(),
+        itemname: _itemNameController.text.trim(),
+        price: double.tryParse(_priceController.text.trim()) ?? 0.0,
+        protein: _proteinController.text.trim(),
+        seller: _sellerEmailController.text.trim(),
+        location: _locationController.text.trim(),
       );
 
       if (mounted) {
-        if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Item added successfully!'),
-                backgroundColor: Color(0xFF00CBA9)),
-          );
-          _formKey.currentState!.reset();
-          _photoController.clear();
-          _itemNameController.clear();
-          _priceController.clear();
-          _proteinController.clear();
-          _sellerEmailController.clear();
-          _locationController.clear();
-        } else {
-          final msg = jsonDecode(response.body)['message'] ?? 'Error occurred';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed: $msg'), backgroundColor: Colors.red),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(result),
+              backgroundColor: const Color(0xFF00CBA9)),
+        );
+        _formKey.currentState!.reset();
+        _photoController.clear();
+        _itemNameController.clear();
+        _priceController.clear();
+        _proteinController.clear();
+        _sellerEmailController.clear();
+        _locationController.clear();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('An error occurred: ${e.toString()}'),
-              backgroundColor: Colors.red),
-        );
+        // Use our custom error handler for a clean message
+        showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {
@@ -115,6 +141,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +175,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAnimatedBackground() {
+   Widget _buildAnimatedBackground() {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -188,8 +215,6 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
     );
   }
 
-  // ----- Redesigned with Glassmorphism -----
-// ----- Redesigned with Glassmorphism -----
   Widget _buildGlassmorphicForm() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(25.0),
@@ -212,10 +237,16 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.2, 0.6),
                   controller: _photoController,
-                  label: "Image URL(https)",
+                  label: "Image URL",
                   icon: Icons.image_outlined,
+                  suffixIcon: _isUploading 
+                    ? const Padding(padding: EdgeInsets.all(12.0), child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00CBA9))) 
+                    : IconButton(
+                        icon: const Icon(Icons.camera_alt_outlined, color: Color(0xFF00CBA9)),
+                        onPressed: _takeAndUploadPicture,
+                      ),
                 ),
-                const SizedBox(height: 16), // Added for spacing
+                const SizedBox(height: 16),
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.3, 0.7),
                   controller: _itemNameController,
@@ -223,7 +254,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                   icon: Icons.shopping_bag_outlined,
                   isRequired: true,
                 ),
-                const SizedBox(height: 16), // Added for spacing
+                const SizedBox(height: 16),
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.4, 0.8),
                   controller: _priceController,
@@ -232,14 +263,14 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                   isNumber: true,
                   isRequired: true,
                 ),
-                const SizedBox(height: 16), // Added for spacing
+                const SizedBox(height: 16),
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.5, 0.9),
                   controller: _proteinController,
                   label: "Protein (e.g., 25g)",
                   icon: Icons.fitness_center,
                 ),
-                 const SizedBox(height: 16), // Added for spacing
+                 const SizedBox(height: 16),
                  _buildAnimatedTextField(
                   animation: _createAnimation(0.6, 1.0),
                   controller: _sellerEmailController,
@@ -247,7 +278,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                   icon: Icons.email_outlined,
                   isRequired: true,
                 ),
-                const SizedBox(height: 16), // Added for spacing
+                const SizedBox(height: 16),
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.7, 1.0),
                   controller: _locationController,
@@ -265,7 +296,6 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
     );
   }
 
-  // Helper for animated text fields with consistent futuristic styling
   Widget _buildAnimatedTextField({
     required Animation<double> animation,
     required TextEditingController controller,
@@ -273,6 +303,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
     required IconData icon,
     bool isNumber = false,
     bool isRequired = false,
+    Widget? suffixIcon,
   }) {
     return AnimatedBuilder(
       animation: animation,
@@ -296,6 +327,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white70),
           prefixIcon: Icon(icon, color: const Color(0xFF00CBA9)),
+          suffixIcon: suffixIcon,
           filled: true,
           fillColor: Colors.white.withOpacity(0.1),
           border: OutlineInputBorder(

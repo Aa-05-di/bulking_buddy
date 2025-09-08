@@ -143,10 +143,10 @@ class CheckoutPage extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Icon(Icons.payment, color: Color(0xFF00CBA9)),
+          Icon(Icons.delivery_dining, color: Color(0xFF00CBA9)),
           SizedBox(width: 2),
           Text(
-            "Payment Method: UPI / Cash on Delivery",
+            "UPI / Cash on Delivery",
             style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],

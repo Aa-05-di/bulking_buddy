@@ -13,7 +13,7 @@ class ItemCard extends StatelessWidget {
     required this.itemName,
     required this.price,
     required this.protein,
-    this.onTap, // onTap is now a required parameter
+    this.onTap, 
   });
 
   @override
@@ -63,16 +63,14 @@ class ItemCard extends StatelessWidget {
                     price,
                     style: const TextStyle(fontSize: 15, color: Colors.green),
                   ),
-                  const SizedBox(height: 2),
                   Text(
                     protein,
                     style: const TextStyle(fontSize: 13, color: Colors.grey),
                   ),
-                  const SizedBox(height: 20),
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      onPressed: onTap, // Now calls the onTap callback
+                      onPressed: onTap,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         padding: const EdgeInsets.symmetric(
