@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login.dart'; // Import your login page
+import 'login.dart'; 
 
 class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
 
-  // This function is called when the user finishes the intro
+  
   void _onIntroEnd(BuildContext context) async {
-    // Save to device memory that the user has seen the intro
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenIntro', true);
 
-    // Navigate to the login page and replace the onboarding screen in the stack
+    
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const Login()),
     );

@@ -1,6 +1,6 @@
 import 'package:first_pro/api/api.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui'; // Required for BackdropFilter
+import 'dart:ui';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -89,10 +89,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF141A28),
-            Color(0xFF004D40),
-          ],
+          colors: [Color(0xFF141A28), Color(0xFF004D40)],
         ),
       ),
     );
@@ -100,7 +97,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     return AnimatedBuilder(
-      animation: _animationController, // No error here, this is correct
+      animation: _animationController,
       builder: (context, child) {
         return Opacity(
           opacity: _animationController.value,
@@ -125,10 +122,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
           SizedBox(height: 8),
           Text(
             "Create your account to get started.",
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 18,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 18),
           ),
         ],
       ),
@@ -159,7 +153,8 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
                   controller: _usernameController,
                   label: "Username",
                   icon: Icons.person_outline,
-                  validator: (val) => val!.isEmpty ? 'Username is required' : null,
+                  validator: (val) =>
+                      val!.isEmpty ? 'Username is required' : null,
                 ),
                 const SizedBox(height: 16),
                 _buildAnimatedTextField(
@@ -168,7 +163,9 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
                   label: "Email",
                   icon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (val) => !(val?.contains('@') ?? false) ? 'Enter a valid email' : null,
+                  validator: (val) => !(val?.contains('@') ?? false)
+                      ? 'Enter a valid email'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 _buildAnimatedTextField(
@@ -177,7 +174,9 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
                   label: "Password",
                   icon: Icons.lock_outline,
                   obscureText: true,
-                  validator: (val) => (val?.length ?? 0) < 6 ? 'Password must be 6+ characters' : null,
+                  validator: (val) => (val?.length ?? 0) < 6
+                      ? 'Password must be 6+ characters'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 _buildAnimatedTextField(
@@ -185,7 +184,8 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
                   controller: _locationController,
                   label: "Location",
                   icon: Icons.location_on_outlined,
-                  validator: (val) => val!.isEmpty ? 'Location is required' : null,
+                  validator: (val) =>
+                      val!.isEmpty ? 'Location is required' : null,
                 ),
                 const SizedBox(height: 30),
                 _buildRegisterButton(),
@@ -197,7 +197,6 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
     );
   }
 
-  // ----- THIS WIDGET IS CORRECTED -----
   Widget _buildAnimatedTextField({
     required Animation<double> animation,
     required TextEditingController controller,
@@ -207,13 +206,11 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
     TextInputType? keyboardType,
     required String? Function(String?) validator,
   }) {
-    // The animation object passed in is already correct.
-    // The builder just needs to know about it.
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return Opacity(
-          opacity: animation.value, // Now it can see 'animation'
+          opacity: animation.value,
           child: Transform.translate(
             offset: Offset(0, 30 * (1 - animation.value)),
             child: child,
@@ -245,22 +242,15 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
     );
   }
 
-  // ----- THIS WIDGET IS CORRECTED -----
   Widget _buildRegisterButton() {
-    // 1. Create the animation and store it in a local variable.
     final Animation<double> animation = _createAnimation(0.6, 1.0);
-    
-    // 2. Return the AnimatedBuilder.
+
     return AnimatedBuilder(
-      animation: animation, // 3. Use the local variable here.
+      animation: animation,
       builder: (context, child) {
-         return Opacity(
-          // 4. And now the builder can access the same variable.
+        return Opacity(
           opacity: animation.value,
-          child: Transform.scale(
-            scale: animation.value,
-            child: child,
-          ),
+          child: Transform.scale(scale: animation.value, child: child),
         );
       },
       child: ElevatedButton(
@@ -269,7 +259,9 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
           backgroundColor: const Color(0xFF00CBA9),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           elevation: 5,
           minimumSize: const Size(double.infinity, 50),
         ),
@@ -277,7 +269,10 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               )
             : const Text(
                 "Create Account",
@@ -287,22 +282,21 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
     );
   }
 
-  // ----- THIS WIDGET IS CORRECTED -----
   Widget _buildLoginLink() {
     final Animation<double> animation = _createAnimation(0.7, 1.0);
 
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
-        return Opacity(
-          opacity: animation.value,
-          child: child,
-        );
+        return Opacity(opacity: animation.value, child: child);
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text("Already have an account?", style: TextStyle(color: Colors.white70)),
+          const Text(
+            "Already have an account?",
+            style: TextStyle(color: Colors.white70),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
@@ -330,7 +324,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin {
         );
 
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result),
               backgroundColor: result == "Registration successful"

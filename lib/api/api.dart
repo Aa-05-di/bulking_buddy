@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+final String baseurl = kDebugMode
+    ? "https://bulkingbuddybackend.onrender.com" 
+    : "https://bulkingbuddybackend.onrender.com";
 
-const String baseurl = "http://10.0.2.2:2000";
-// ---------- Auth ----------
 Future<String> registerUser({
   required String username,
   required String email,

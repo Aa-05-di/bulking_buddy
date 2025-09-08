@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui'; // Required for BackdropFilter
+import 'dart:ui';
 import 'package:first_pro/api/api.dart';
 import 'package:first_pro/presentations/register.dart';
 import 'package:first_pro/presentations/userpage.dart';
@@ -19,24 +19,21 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   bool _isLoading = false;
 
   final List<Map<String, dynamic>> fontData = [
-    // Set the size for English to be slightly smaller
     {'text': 'Bulking Buddy', 'style': GoogleFonts.orbitron, 'size': 38.0},
 
-    // Keep the other languages at the original size
-    {'text': 'بولكينج بدي', 'style': GoogleFonts.notoKufiArabic, 'size': 42.0},
+    {'text': 'بولكينج بدي', 'style': GoogleFonts.notoKufiArabic, 'size': 39.0},
     {'text': 'பல்கிங் படி', 'style': GoogleFonts.kavivanar, 'size': 42.0},
     {'text': 'बलकिंग बड्डी', 'style': GoogleFonts.chilanka, 'size': 35.0},
   ];
   int _currentFontIndex = 0;
   Timer? _titleTimer;
 
-  // For the staggered entrance animations
   late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
-    // Timer for the cycling title text
+
     _titleTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (mounted) {
         setState(() {
@@ -45,7 +42,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       }
     });
 
-    // Controller for the staggered entrance animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -346,14 +342,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           ),
         );
       }
-      // in login.dart
+      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               "Login failed: ${e.toString()}",
-            ), // This shows the ugly error
+            ), 
             backgroundColor: Colors.redAccent,
           ),
         );

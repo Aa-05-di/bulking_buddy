@@ -121,7 +121,7 @@ class _CartState extends State<Cart> {
                             final itemData = item['productId'] ?? item;
                             final itemId = itemData['_id'] as String;
                             final quantity = _itemQuantities[itemId] ?? 1;
-                            
+
                             return AnimationConfiguration.staggeredList(
                               position: index,
                               duration: const Duration(milliseconds: 375),
@@ -130,12 +130,15 @@ class _CartState extends State<Cart> {
                                 child: FadeInAnimation(
                                   child: CartItemCard(
                                     imagePath: itemData['photo'] ?? '',
-                                    itemName: itemData['itemname'] ?? 'Unnamed Item',
+                                    itemName:
+                                        itemData['itemname'] ?? 'Unnamed Item',
                                     price: '₹${itemData['price'] ?? 'N/A'}',
                                     protein: itemData['protein'] ?? 'N/A',
                                     quantity: quantity,
-                                    onIncrement: () => _incrementQuantity(itemId),
-                                    onDecrement: () => _decrementQuantity(itemId),
+                                    onIncrement: () =>
+                                        _incrementQuantity(itemId),
+                                    onDecrement: () =>
+                                        _decrementQuantity(itemId),
                                     onRemove: () => _removeItem(itemId),
                                   ),
                                 ),
@@ -162,12 +165,10 @@ class _CartState extends State<Cart> {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CheckoutPage(
-                  cartItems: _localCartItems,
-                ),
+                builder: (context) => CheckoutPage(cartItems: _localCartItems),
               ),
             );
-            
+
             if (result == 'order_placed') {
               await widget.onCheckout();
               if (mounted) {
@@ -185,10 +186,7 @@ class _CartState extends State<Cart> {
           ),
           child: const Text(
             "Proceed to Checkout",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -196,7 +194,6 @@ class _CartState extends State<Cart> {
   }
 }
 
-// This new widget displays the Lottie animation for the empty cart state.
 class EmptyCartAnimation extends StatelessWidget {
   const EmptyCartAnimation({super.key});
 
@@ -206,22 +203,22 @@ class EmptyCartAnimation extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Lottie.asset(
-            'assets/shopping cart.json',
-            width: 250,
-            height: 250,
-          ),
+          Lottie.asset('assets/shopping cart.json', width: 250, height: 250),
           const SizedBox(height: 20),
           Text(
             "Your cart is empty!",
             style: TextStyle(
-                fontSize: 20, color: Colors.white.withOpacity(0.8)),
+              fontSize: 20,
+              color: Colors.white.withOpacity(0.8),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             "Go back to add some delicious items.",
             style: TextStyle(
-                fontSize: 16, color: Colors.white.withOpacity(0.5)),
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.5),
+            ),
           ),
         ],
       ),

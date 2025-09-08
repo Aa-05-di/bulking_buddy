@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class CheckoutPage extends StatelessWidget {
   final List<dynamic> cartItems;
 
-  const CheckoutPage({
-    super.key,
-    required this.cartItems,
-  });
+  const CheckoutPage({super.key, required this.cartItems});
 
   double _calculateTotal() {
     double total = 0.0;
@@ -68,7 +65,9 @@ class CheckoutPage extends StatelessWidget {
                       trailing: Text(
                         '₹${itemData['price'] ?? 'N/A'} x $quantity',
                         style: const TextStyle(
-                            color: Color(0xFF00CBA9), fontWeight: FontWeight.bold),
+                          color: Color(0xFF00CBA9),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     );
                   },
@@ -106,7 +105,6 @@ class CheckoutPage extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Pop this screen and send a result back
                     Navigator.pop(context, 'order_placed');
                   },
                   style: ElevatedButton.styleFrom(
@@ -119,10 +117,7 @@ class CheckoutPage extends StatelessWidget {
                   ),
                   child: const Text(
                     "Place Order",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

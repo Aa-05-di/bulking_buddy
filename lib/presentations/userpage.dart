@@ -6,7 +6,7 @@ import 'package:first_pro/presentations/cart.dart';
 import 'package:first_pro/presentations/seller.dart';
 import 'package:first_pro/presentations/login.dart';
 import '../core/itemcard.dart';
-import 'dart:ui'; 
+import 'dart:ui';
 
 class UserPage extends StatefulWidget {
   final String email;
@@ -18,7 +18,6 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
-  // Existing state
   List<dynamic> items = [];
   List<dynamic> cart = [];
   bool isLoading = true;
@@ -27,7 +26,6 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   int _pendingOrderCount = 0;
   late AnimationController _animationController;
 
-  // ----- ADDED FOR AI WORKOUT PLANNER -----
   final _weightController = TextEditingController();
   int _totalProteinToday = 0;
   Map<String, dynamic>? _workoutPlan;
@@ -92,7 +90,6 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     }
   }
 
-  // ----- MOVED THIS FUNCTION INSIDE THE CLASS -----
   void _generateWorkoutPlan() async {
     final double? weight = double.tryParse(_weightController.text);
 
