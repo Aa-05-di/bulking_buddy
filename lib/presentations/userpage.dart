@@ -1,5 +1,7 @@
 import 'package:first_pro/presentations/history.dart';
 import 'package:first_pro/presentations/recorders.dart';
+import 'package:first_pro/presentations/workout.dart';
+import 'package:first_pro/utils/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:first_pro/api/api.dart';
 import 'package:first_pro/presentations/cart.dart';
@@ -7,7 +9,6 @@ import 'package:first_pro/presentations/seller.dart';
 import 'package:first_pro/presentations/login.dart';
 import '../core/itemcard.dart';
 import 'dart:ui';
-import 'dart:math';
 
 class UserPage extends StatefulWidget {
   final String email;
@@ -19,6 +20,7 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
+  // Core state
   List<dynamic> items = [];
   List<dynamic> cart = [];
   bool isLoading = true;
@@ -27,10 +29,13 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   int _pendingOrderCount = 0;
   late AnimationController _animationController;
 
+  // AI Planner State
   final _weightController = TextEditingController();
+  final _foodController = TextEditingController();
   int _totalProteinToday = 0;
   Map<String, dynamic>? _workoutPlan;
   bool _isGeneratingPlan = false;
+  Map<String, dynamic> _workoutSplitData = {};
 
   @override
   void initState() {
@@ -46,6 +51,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   void dispose() {
     _animationController.dispose();
     _weightController.dispose();
+    _foodController.dispose();
     super.dispose();
   }
 
@@ -76,12 +82,13 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
           items = userData['nearbyItems'] ?? [];
           cart = userData['cart'] ?? [];
           userName = userData['username'] ?? 'User';
+          _workoutSplitData = userData['workoutSplit'] ?? {};
           _pendingOrderCount = results[1] as int;
           _totalProteinToday = results[2] as int;
         });
       }
     } catch (e) {
-      print("Error loading all data: $e");
+      if (mounted) showErrorSnackBar(context, e);
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
@@ -92,7 +99,6 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
 
   void _generateWorkoutPlan() async {
     final double? weight = double.tryParse(_weightController.text);
-
     if (weight == null || weight <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -110,39 +116,13 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
         weight: weight,
         proteinToday: _totalProteinToday,
         userEmail: widget.email,
+        eatenFood: _foodController.text,
       );
-      if (mounted) {
-        setState(() {
-          _workoutPlan = plan;
-        });
-      }
+      if (mounted) setState(() => _workoutPlan = plan);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to generate plan: ${e.toString()}"),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
+      if (mounted) showErrorSnackBar(context, e);
     } finally {
-      if (mounted) {
-        setState(() => _isGeneratingPlan = false);
-      }
-    }
-  }
-
-  Future<void> loadUserData() async {
-    try {
-      final userData = await fetchProfileData(widget.email);
-      if (!mounted) return;
-      setState(() {
-        items = userData['nearbyItems'] ?? [];
-        cart = userData['cart'] ?? [];
-        userName = userData['username'] ?? 'User';
-      });
-    } catch (e) {
-      print("Error loading user data: $e");
+      if (mounted) setState(() => _isGeneratingPlan = false);
     }
   }
 
@@ -152,13 +132,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       final updatedCart = await addToUserCartAndCart(userEmail: widget.email, itemId: itemId);
       if(mounted) setState(() => cart = updatedCart['cart']);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Item added to cart!'),
-          backgroundColor: Color(0xFF00CBA9),
-        ),
+        const SnackBar(content: Text('Item added to cart!'), backgroundColor: Color(0xFF00CBA9)),
       );
     } catch (e) {
-      print("Error adding to cart: $e");
+      if (mounted) showErrorSnackBar(context, e);
     }
   }
 
@@ -167,7 +144,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       final updatedCart = await removeFromUserCartAndCart(userEmail: widget.email, itemId: itemId);
       if(mounted) setState(() => cart = updatedCart['cart']);
     } catch (e) {
-      print("Error removing item from cart: $e");
+      if (mounted) showErrorSnackBar(context, e);
     }
   }
   
@@ -180,11 +157,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       );
        if(mounted) setState(() => cart = updatedCart['cart']);
     } catch (e) {
-      print("Error updating quantity: $e");
+      if (mounted) showErrorSnackBar(context, e);
     }
   }
 
-  // ----- THIS FUNCTION IS NOW FULLY CORRECTED -----
   void goToCartPage() {
     Navigator.push(
       context,
@@ -197,13 +173,11 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
           onQuantityChanged: (itemId, newCount) {
             _updateItemQuantity(itemId, newCount);
           },
-          // This callback now correctly passes the deliveryMethod to the API
           onCheckout: (deliveryMethod) async {
             await placeOrderAndClearCart(
               userEmail: widget.email,
               deliveryMethod: deliveryMethod,
             );
-            // After checkout, refresh ALL data, including protein count
             await loadAllData(); 
           },
         ),
@@ -238,7 +212,22 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     );
   }
 
-  void _showProfileMenu(BuildContext context) {
+  void _goToEditWorkoutPlan() {
+    if (_workoutSplitData.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditWorkoutPlanPage(
+          userEmail: widget.email,
+          initialWorkoutSplit: _workoutSplitData,
+        ),
+      ),
+    ).then((_) {
+      loadAllData();
+    });
+  }
+
+   void _showProfileMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -604,29 +593,25 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(
-                        Icons.auto_awesome,
-                        color: Color(0xFF00CBA9),
-                        size: 28,
+                      const Row(
+                        children: [
+                          Icon(Icons.auto_awesome, color: Color(0xFF00CBA9), size: 28),
+                          SizedBox(width: 12),
+                          Text("AI Workout Planner", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ],
                       ),
-                      SizedBox(width: 12),
-                      Text(
-                        "AI Workout Planner",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_note, color: Colors.white70),
+                        onPressed: _goToEditWorkoutPlan,
+                        tooltip: 'Edit Weekly Plan',
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    "Based on your protein purchased today: ${_totalProteinToday}g",
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
+                  Text("Based on your protein purchased today: ${_totalProteinToday}g", style: const TextStyle(color: Colors.white70, fontSize: 14)),
                   const SizedBox(height: 20),
                   TextField(
                     controller: _weightController,
@@ -635,10 +620,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                     decoration: InputDecoration(
                       labelText: "Your Current Weight (kg)",
                       labelStyle: const TextStyle(color: Colors.white70),
-                      prefixIcon: const Icon(
-                        Icons.monitor_weight_outlined,
-                        color: Color(0xFF00CBA9),
-                      ),
+                      prefixIcon: const Icon(Icons.monitor_weight_outlined, color: Color(0xFF00CBA9)),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                       border: OutlineInputBorder(
@@ -647,10 +629,27 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF00CBA9),
-                          width: 2,
-                        ),
+                        borderSide: const BorderSide(color: Color(0xFF00CBA9), width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _foodController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Other food eaten today? (e.g., 2 eggs)",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      prefixIcon: const Icon(Icons.egg_alt_outlined, color: Color(0xFF00CBA9)),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Color(0xFF00CBA9), width: 2),
                       ),
                     ),
                   ),
@@ -661,26 +660,11 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                       backgroundColor: const Color(0xFF00CBA9),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     ),
                     child: _isGeneratingPlan
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3,
-                            ),
-                          )
-                        : const Text(
-                            "Generate Today's Plan",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                        : const Text("Generate Today's Plan", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                   if (_workoutPlan != null) _buildPlanResult(),
                 ],
@@ -694,6 +678,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
 
   Widget _buildPlanResult() {
     final exercisesList = _workoutPlan!['exercises'] as List;
+    final estimatedProtein = _workoutPlan!['estimatedProtein'] ?? 0;
 
     return Padding(
       padding: const EdgeInsets.only(top: 24.0),
@@ -702,33 +687,20 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
         children: [
           const Divider(color: Colors.white24),
           const SizedBox(height: 16),
-          Text(
-            _workoutPlan!['fact'],
-            style: const TextStyle(
-              color: Colors.white,
-              fontStyle: FontStyle.italic,
+          if (estimatedProtein > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Text("AI estimated an additional ${estimatedProtein}g of protein from your entry.", style: const TextStyle(color: Colors.white70, fontSize: 14)),
             ),
-          ),
+          Text(_workoutPlan!['fact'], style: const TextStyle(color: Colors.white, fontStyle: FontStyle.italic)),
           const SizedBox(height: 20),
           ...exercisesList.map((exercise) {
             final exerciseMap = exercise as Map<String, dynamic>;
             return ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(
-                Icons.fitness_center,
-                color: Color(0xFF00CBA9),
-              ),
-              title: Text(
-                exerciseMap['name'].toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                "Sets: ${exerciseMap['sets']} | Reps: ${exerciseMap['reps']}",
-                style: const TextStyle(color: Colors.white70),
-              ),
+              leading: const Icon(Icons.fitness_center, color: Color(0xFF00CBA9)),
+              title: Text(exerciseMap['name'].toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              subtitle: Text("Sets: ${exerciseMap['sets']} | Reps: ${exerciseMap['reps']}", style: const TextStyle(color: Colors.white70)),
             );
           }).toList(),
         ],
@@ -736,4 +708,6 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     );
   }
 }
+
+
 

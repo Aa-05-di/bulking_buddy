@@ -66,10 +66,8 @@ class _ReceivedOrdersPageState extends State<ReceivedOrdersPage> {
     if (confirm != true) return;
 
     try {
-      await deleteOrder(orderId);
-      setState(() {
-        _orders.removeWhere((order) => order['_id'] == orderId);
-      });
+      await markOrderAsDelivered(orderId);
+      await _refreshOrders(); 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Order marked as delivered!'), backgroundColor: Color(0xFF00CBA9)),

@@ -204,15 +204,14 @@ Future<void> placeOrderAndClearCart({
   }
 }
 
-// ----- NEW FUNCTION TO DELETE AN ORDER -----
-Future<String> deleteOrder(String orderId) async {
-  final url = Uri.parse('$baseurl/orders/$orderId');
-  final response = await http.delete(url);
+Future<String> markOrderAsDelivered(String orderId) async {
+  final url = Uri.parse('$baseurl/orders/deliver/$orderId');
+  final response = await http.post(url); // Changed from delete to post
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body)['message'];
   } else {
-    throw Exception('Failed to delete order: ${_msg(response.body)}');
+    throw Exception('Failed to mark order as delivered: ${_msg(response.body)}');
   }
 }
 
@@ -304,7 +303,8 @@ Future<int> fetchTotalProteinToday(String userEmail) async {
 Future<Map<String, dynamic>> generateWorkoutPlan({
   required double weight,
   required int proteinToday,
-  required String userEmail, // <-- ADD THIS
+  required String userEmail,
+  required String eatenFood, 
 }) async {
   final url = Uri.parse('$baseurl/generate-workout');
   final response = await http.post(
@@ -313,14 +313,33 @@ Future<Map<String, dynamic>> generateWorkoutPlan({
     body: jsonEncode({
       'weight': weight,
       'proteinToday': proteinToday,
-      'userEmail': userEmail, // <-- AND THIS
+      'userEmail': userEmail,
+      'eatenFood': eatenFood, 
     }),
   );
-  // ... (rest of the function is the same)
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
     throw Exception('Failed to generate AI workout plan: ${_msg(response.body)}');
+  }
+}
+
+Future<void> updateWorkoutSplit({
+  required String email,
+  required Map<String, String> newSplit,
+}) async {
+  final url = Uri.parse('$baseurl/update-workout-split');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'email': email,
+      'newSplit': newSplit,
+    }),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to update workout split: ${_msg(response.body)}');
   }
 }
 
