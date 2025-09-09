@@ -5,6 +5,7 @@ import 'package:first_pro/presentations/register.dart';
 import 'package:first_pro/presentations/userpage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -316,9 +317,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _onLogin() async {
+Future<void> _onLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter both email and password."),
           backgroundColor: Colors.redAccent,
@@ -334,6 +335,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         password: _passwordController.text,
       );
 
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userEmail', user['email']);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -342,14 +346,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           ),
         );
       }
-      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Login failed: ${e.toString()}",
-            ), 
+            content: Text("Login failed: ${e.toString()}"),
             backgroundColor: Colors.redAccent,
           ),
         );

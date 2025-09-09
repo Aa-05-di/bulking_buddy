@@ -1,16 +1,18 @@
+import 'package:first_pro/presentations/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'presentations/animated_splash_screen.dart'; 
 
 Future<void> main() async {
+  // This setup ensures that your app is initialized correctly.
   WidgetsFlutterBinding.ensureInitialized();
   
+  // This locks the app to portrait mode only.
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
-  runApp(const MyApp()); 
+  
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -22,11 +24,11 @@ class MyApp extends StatelessWidget {
       title: 'Bulking Buddy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: const Color(0xFF141A28),
       ),
-
+      // The app will ALWAYS start with your animation.
       home: const AnimatedSplashScreen(),
     );
   }
 }
+

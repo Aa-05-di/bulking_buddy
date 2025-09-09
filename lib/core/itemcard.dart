@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ItemCard extends StatelessWidget {
   final String imagePath;
   final String itemName;
   final String price;
   final String protein;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
+  final int quantity; // <-- Accepts the stock quantity
 
   const ItemCard({
     super.key,
@@ -13,79 +15,86 @@ class ItemCard extends StatelessWidget {
     required this.itemName,
     required this.price,
     required this.protein,
-    this.onTap, 
+    required this.onTap,
+    required this.quantity, // <-- Accepts the stock quantity
   });
 
   @override
   Widget build(BuildContext context) {
+    // This boolean controls the UI changes
+    final bool isOutOfStock = quantity <= 0;
+
     return SizedBox(
       width: 200,
       child: Card(
+        color: const Color(0xFF2A2D3E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         elevation: 5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        clipBehavior: Clip.antiAlias,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              child: Image.network(
-                imagePath,
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const SizedBox(
-                  height: 90,
-                  child: Center(child: Text('Image not available')),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                // --- ADDED STACK FOR "OUT OF STOCK" OVERLAY ---
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: imagePath,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: Colors.grey[800]),
+                      errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.red),
+                    ),
+                    // If the item is out of stock, show a dark overlay with text
+                    if (isOutOfStock)
+                      Container(
+                        color: Colors.black.withOpacity(0.6),
+                        child: const Center(
+                          child: Text(
+                            'OUT OF STOCK',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    itemName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(itemName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text(
-                    price,
-                    style: const TextStyle(fontSize: 15, color: Colors.green),
-                  ),
-                  Text(
-                    protein,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: onTap,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 34,
-                          vertical: 13,
+                  Text(protein, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(price, style: const TextStyle(color: Color(0xFF00CBA9), fontWeight: FontWeight.bold, fontSize: 18)),
+                      
+                      // --- THIS BUTTON IS NOW CONDITIONAL ---
+                      ElevatedButton(
+                        // Disable the button's onTap if the item is out of stock
+                        onPressed: isOutOfStock ? null : onTap, 
+                        style: ElevatedButton.styleFrom(
+                          // Change color and text based on stock status
+                          backgroundColor: isOutOfStock ? Colors.grey[700] : const Color(0xFF00CBA9),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                        child: Text(isOutOfStock ? "Sold Out" : "Buy"),
                       ),
-                      child: const Text(
-                        "Buy",
-                        style: TextStyle(fontSize: 13, color: Colors.white),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -96,3 +105,4 @@ class ItemCard extends StatelessWidget {
     );
   }
 }
+

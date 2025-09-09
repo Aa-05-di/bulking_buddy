@@ -66,6 +66,7 @@ Future<String> addItem({
   required String protein,
   required String seller,
   required String location,
+  required int quantity,
 }) async {
   final url = Uri.parse("$baseurl/additem");
   final response = await http.post(
@@ -78,6 +79,7 @@ Future<String> addItem({
       'protein': protein,
       'seller': seller,
       'location': location,
+      'quantity': quantity,
     }),
   );
 

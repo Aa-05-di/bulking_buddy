@@ -7,6 +7,7 @@ import 'package:first_pro/api/api.dart';
 import 'package:first_pro/presentations/cart.dart';
 import 'package:first_pro/presentations/seller.dart';
 import 'package:first_pro/presentations/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/itemcard.dart';
 import 'dart:ui';
 
@@ -258,13 +259,18 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
         ),
       ],
       elevation: 8.0,
-    ).then((value) {
-      if (value == 'logout') {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const Login()),
-          (route) => false,
-        );
+    ).then((value) async{
+      if (value == 'logout'){
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('userEmail');
+
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const Login()),
+            (route) => false,
+          );
+        }
       }
     });
   }
@@ -506,6 +512,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
+                      final int quantity = item['quantity'] ?? 0;
                       return Padding(
                         padding: const EdgeInsets.only(right: 24.0),
                         child: ItemCard(
@@ -513,6 +520,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                           itemName: item['itemname'] ?? 'Unnamed',
                           price: '₹${item['price'] ?? 'N/A'}',
                           protein: item['protein'] ?? 'N/A',
+                          quantity: quantity,
                           onTap: () => addToCart(item),
                         ),
                       );

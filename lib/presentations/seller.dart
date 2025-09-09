@@ -22,6 +22,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
   final TextEditingController _proteinController = TextEditingController();
   final TextEditingController _sellerEmailController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+    final TextEditingController _quantityController = TextEditingController();
 
   bool _isSubmitting = false;
   bool _isUploading = false;
@@ -47,6 +48,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
     _proteinController.dispose();
     _sellerEmailController.dispose();
     _locationController.dispose();
+    _quantityController.dispose();
     super.dispose();
   }
 
@@ -125,6 +127,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
         protein: _proteinController.text.trim(),
         seller: _sellerEmailController.text.trim(),
         location: _locationController.text.trim(),
+        quantity: int.tryParse(_quantityController.text.trim()) ?? 0,
       );
 
       if (mounted) {
@@ -282,13 +285,22 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                 const SizedBox(height: 16),
                 _buildAnimatedTextField(
                   animation: _createAnimation(0.5, 0.9),
+                  controller: _quantityController,
+                  label: "Stock Quantity (e.g., 10)",
+                  icon: Icons.inventory_2_outlined,
+                  isNumber: true,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16),
+                _buildAnimatedTextField(
+                  animation: _createAnimation(0.6, 1.0),
                   controller: _proteinController,
                   label: "Protein (e.g., 25g)",
                   icon: Icons.fitness_center,
                 ),
                 const SizedBox(height: 16),
                 _buildAnimatedTextField(
-                  animation: _createAnimation(0.6, 1.0),
+                  animation: _createAnimation(0.7, 1.0),
                   controller: _sellerEmailController,
                   label: "Your Email (Seller)",
                   icon: Icons.email_outlined,
@@ -296,7 +308,7 @@ class _SellerState extends State<Seller> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 16),
                 _buildAnimatedTextField(
-                  animation: _createAnimation(0.7, 1.0),
+                  animation: _createAnimation(0.8, 1.0),
                   controller: _locationController,
                   label: "Location",
                   icon: Icons.location_on_outlined,
