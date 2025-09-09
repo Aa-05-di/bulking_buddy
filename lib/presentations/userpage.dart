@@ -7,6 +7,7 @@ import 'package:first_pro/presentations/seller.dart';
 import 'package:first_pro/presentations/login.dart';
 import '../core/itemcard.dart';
 import 'dart:ui';
+import 'dart:math';
 
 class UserPage extends StatefulWidget {
   final String email;
@@ -30,7 +31,6 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   int _totalProteinToday = 0;
   Map<String, dynamic>? _workoutPlan;
   bool _isGeneratingPlan = false;
-  // ----- END OF NEW STATE -----
 
   @override
   void initState() {
@@ -149,8 +149,8 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   Future<void> addToCart(dynamic product) async {
     try {
       final String itemId = product['_id'];
-      await addToUserCart(userEmail: widget.email, itemId: itemId);
-      await loadUserData();
+      final updatedCart = await addToUserCartAndCart(userEmail: widget.email, itemId: itemId);
+      if(mounted) setState(() => cart = updatedCart['cart']);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Item added to cart!'),
@@ -164,33 +164,47 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
 
   Future<void> _removeItemFromCart(String itemId) async {
     try {
-      await removeFromUserCart(userEmail: widget.email, itemId: itemId);
-      await loadUserData();
+      final updatedCart = await removeFromUserCartAndCart(userEmail: widget.email, itemId: itemId);
+      if(mounted) setState(() => cart = updatedCart['cart']);
     } catch (e) {
       print("Error removing item from cart: $e");
     }
   }
+  
+  Future<void> _updateItemQuantity(String itemId, int newQuantity) async {
+     try {
+      final updatedCart = await updateCartQuantityAndCart(
+        userEmail: widget.email,
+        itemId: itemId,
+        newQuantity: newQuantity,
+      );
+       if(mounted) setState(() => cart = updatedCart['cart']);
+    } catch (e) {
+      print("Error updating quantity: $e");
+    }
+  }
 
+  // ----- THIS FUNCTION IS NOW FULLY CORRECTED -----
   void goToCartPage() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Cart(
           cartItems: cart,
-          onItemRemoved: (itemId) async {
-            await _removeItemFromCart(itemId);
+          onItemRemoved: (itemId) {
+            _removeItemFromCart(itemId);
           },
-          onQuantityChanged: (itemId, newCount) async {
-            await updateCartQuantity(
+          onQuantityChanged: (itemId, newCount) {
+            _updateItemQuantity(itemId, newCount);
+          },
+          // This callback now correctly passes the deliveryMethod to the API
+          onCheckout: (deliveryMethod) async {
+            await placeOrderAndClearCart(
               userEmail: widget.email,
-              itemId: itemId,
-              newQuantity: newCount,
+              deliveryMethod: deliveryMethod,
             );
-            await loadUserData();
-          },
-          onCheckout: () async {
-            await placeOrderAndClearCart(userEmail: widget.email);
-            await loadUserData();
+            // After checkout, refresh ALL data, including protein count
+            await loadAllData(); 
           },
         ),
       ),
@@ -722,3 +736,4 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     );
   }
 }
+

@@ -2,13 +2,13 @@ import 'package:first_pro/core/cartitem.dart';
 import 'package:first_pro/presentations/checkout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:lottie/lottie.dart';
 
 class Cart extends StatefulWidget {
   final List<dynamic> cartItems;
   final Function(String) onItemRemoved;
   final Function(String, int) onQuantityChanged;
-  final Future<void> Function() onCheckout;
+  // ----- THIS IS THE FIX: The function now accepts a String -----
+  final Future<void> Function(String deliveryMethod) onCheckout;
 
   const Cart({
     super.key,
@@ -106,7 +106,20 @@ class _CartState extends State<Cart> {
       ),
       body: SafeArea(
         child: _localCartItems.isEmpty
-            ? const EmptyCartAnimation()
+            ? Center(
+                child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.shopping_cart_outlined,
+                      size: 100, color: Color(0xFF00CBA9)),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Your cart is empty!",
+                    style: TextStyle(
+                        fontSize: 20, color: Colors.white.withOpacity(0.8)),
+                  ),
+                ],
+              ))
             : Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
@@ -121,7 +134,7 @@ class _CartState extends State<Cart> {
                             final itemData = item['productId'] ?? item;
                             final itemId = itemData['_id'] as String;
                             final quantity = _itemQuantities[itemId] ?? 1;
-
+                            
                             return AnimationConfiguration.staggeredList(
                               position: index,
                               duration: const Duration(milliseconds: 375),
@@ -130,15 +143,12 @@ class _CartState extends State<Cart> {
                                 child: FadeInAnimation(
                                   child: CartItemCard(
                                     imagePath: itemData['photo'] ?? '',
-                                    itemName:
-                                        itemData['itemname'] ?? 'Unnamed Item',
+                                    itemName: itemData['itemname'] ?? 'Unnamed Item',
                                     price: '₹${itemData['price'] ?? 'N/A'}',
                                     protein: itemData['protein'] ?? 'N/A',
                                     quantity: quantity,
-                                    onIncrement: () =>
-                                        _incrementQuantity(itemId),
-                                    onDecrement: () =>
-                                        _decrementQuantity(itemId),
+                                    onIncrement: () => _incrementQuantity(itemId),
+                                    onDecrement: () => _decrementQuantity(itemId),
                                     onRemove: () => _removeItem(itemId),
                                   ),
                                 ),
@@ -165,12 +175,19 @@ class _CartState extends State<Cart> {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CheckoutPage(cartItems: _localCartItems),
+                builder: (context) => CheckoutPage(
+                  cartItems: _localCartItems,
+                ),
               ),
             );
-
-            if (result == 'order_placed') {
-              await widget.onCheckout();
+            
+            // ----- THIS LOGIC IS NOW CORRECT -----
+            if (result is Map && result['result'] == 'order_placed') {
+              final deliveryMethod = result['method'] as String;
+              
+              // Call the callback with the chosen delivery method
+              await widget.onCheckout(deliveryMethod);
+              
               if (mounted) {
                 Navigator.of(context).pop();
               }
@@ -186,7 +203,10 @@ class _CartState extends State<Cart> {
           ),
           child: const Text(
             "Proceed to Checkout",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -194,34 +214,3 @@ class _CartState extends State<Cart> {
   }
 }
 
-class EmptyCartAnimation extends StatelessWidget {
-  const EmptyCartAnimation({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Lottie.asset('assets/shopping cart.json', width: 250, height: 250),
-          const SizedBox(height: 20),
-          Text(
-            "Your cart is empty!",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Go back to add some delicious items.",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -185,16 +185,34 @@ Future<Map<String, dynamic>> updateCartQuantityAndCart({
 }
 
 // ---------- Checkout ----------
-Future<void> placeOrderAndClearCart({required String userEmail}) async {
+Future<void> placeOrderAndClearCart({
+  required String userEmail,
+  required String deliveryMethod,
+}) async {
   final url = Uri.parse('$baseurl/placeorder');
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': userEmail}),
+    body: jsonEncode({
+      'email': userEmail,
+      'deliveryMethod': deliveryMethod, // Send the chosen method
+    }),
   );
 
   if (response.statusCode != 200) {
     throw Exception('Failed to place order: ${_msg(response.body)}');
+  }
+}
+
+// ----- NEW FUNCTION TO DELETE AN ORDER -----
+Future<String> deleteOrder(String orderId) async {
+  final url = Uri.parse('$baseurl/orders/$orderId');
+  final response = await http.delete(url);
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body)['message'];
+  } else {
+    throw Exception('Failed to delete order: ${_msg(response.body)}');
   }
 }
 
