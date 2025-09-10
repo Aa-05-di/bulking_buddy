@@ -1,4 +1,5 @@
 import 'package:first_pro/presentations/history.dart';
+import 'package:first_pro/presentations/managestock.dart';
 import 'package:first_pro/presentations/recorders.dart';
 import 'package:first_pro/presentations/workout.dart';
 import 'package:first_pro/utils/error_handler.dart';
@@ -130,8 +131,8 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   Future<void> addToCart(dynamic product) async {
     try {
       final String itemId = product['_id'];
-      final updatedCart = await addToUserCartAndCart(userEmail: widget.email, itemId: itemId);
-      if(mounted) setState(() => cart = updatedCart['cart']);
+      final updatedCartData = await addToUserCartAndCart(userEmail: widget.email, itemId: itemId);
+      if(mounted) setState(() => cart = updatedCartData['cart']);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item added to cart!'), backgroundColor: Color(0xFF00CBA9)),
       );
@@ -142,8 +143,8 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
 
   Future<void> _removeItemFromCart(String itemId) async {
     try {
-      final updatedCart = await removeFromUserCartAndCart(userEmail: widget.email, itemId: itemId);
-      if(mounted) setState(() => cart = updatedCart['cart']);
+      final updatedCartData = await removeFromUserCartAndCart(userEmail: widget.email, itemId: itemId);
+      if(mounted) setState(() => cart = updatedCartData['cart']);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e);
     }
@@ -151,12 +152,12 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   
   Future<void> _updateItemQuantity(String itemId, int newQuantity) async {
      try {
-      final updatedCart = await updateCartQuantityAndCart(
+      final updatedCartData = await updateCartQuantityAndCart(
         userEmail: widget.email,
         itemId: itemId,
         newQuantity: newQuantity,
       );
-       if(mounted) setState(() => cart = updatedCart['cart']);
+       if(mounted) setState(() => cart = updatedCartData['cart']);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e);
     }
@@ -228,7 +229,8 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     });
   }
 
-   void _showProfileMenu(BuildContext context) {
+  // ----- THIS FUNCTION IS NOW FULLY CORRECTED -----
+  void _showProfileMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -243,13 +245,24 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
       Offset.zero & overlay.size,
     );
 
-    showMenu(
+    showMenu<String>(
       context: context,
       position: position,
-      items: [
-        PopupMenuItem(
+      items: <PopupMenuEntry<String>>[ 
+        const PopupMenuItem<String>(
+          value: 'manage_stock',
+          child: Row(
+            children: [
+              Icon(Icons.inventory, color: Color(0xFF00CBA9)),
+              SizedBox(width: 8),
+              Text('Manage Stock'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem<String>(
           value: 'logout',
-          child: const Row(
+          child: Row(
             children: [
               Icon(Icons.logout, color: Colors.red),
               SizedBox(width: 8),
@@ -259,8 +272,12 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
         ),
       ],
       elevation: 8.0,
-    ).then((value) async{
-      if (value == 'logout'){
+    ).then((value) async { 
+      if (value == 'manage_stock') {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => ManageStockPage(sellerEmail: widget.email),
+        ));
+      } else if (value == 'logout') {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('userEmail');
 
@@ -372,11 +389,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.history,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                  icon: const Icon(Icons.history, color: Colors.white, size: 28),
                   onPressed: onMyOrders,
                 ),
                 Badge(
@@ -384,20 +397,12 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                   isLabelVisible: cart.isNotEmpty,
                   backgroundColor: Colors.redAccent,
                   child: IconButton(
-                    icon: const Icon(
-                      Icons.shopping_cart_outlined,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
                     onPressed: goToCartPage,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(
-                    Icons.account_circle,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                  icon: const Icon(Icons.account_circle, color: Colors.white, size: 28),
                   onPressed: () => _showProfileMenu(context),
                 ),
               ],
@@ -434,10 +439,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
                 onChanged: (val) => setState(() => searchQuery = val),
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 14,
-                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   hintText: "Search items...",
                   hintStyle: TextStyle(color: Colors.white54),
                   prefixIcon: Icon(Icons.search, color: Colors.white54),
@@ -469,23 +471,10 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Nearby Items",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                const Text("Nearby Items", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                 TextButton(
                   onPressed: () {},
-                  child: const Text(
-                    "See All",
-                    style: TextStyle(
-                      color: Color(0xFF00CBA9),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Text("See All", style: TextStyle(color: Color(0xFF00CBA9), fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -495,13 +484,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
               ? Padding(
                   padding: const EdgeInsets.only(top: 50),
                   child: Center(
-                    child: Text(
-                      "No nearby items found.",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
+                    child: Text("No nearby items found.", style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.7))),
                   ),
                 )
               : SizedBox(
@@ -550,23 +533,14 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
               heroTag: 'receivedOrdersBtn',
               onPressed: onReceivedOrders,
               backgroundColor: const Color(0xFF00CBA9).withOpacity(0.8),
-              child: const Icon(
-                Icons.inventory_2_outlined,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.inventory_2_outlined, color: Colors.white),
             ),
           ),
           const SizedBox(width: 16),
           FloatingActionButton.extended(
             heroTag: 'becomeSellerBtn',
             onPressed: becomeSeller,
-            label: const Text(
-              "Become a Seller",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            label: const Text("Become a Seller", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             icon: const Icon(Icons.store, color: Colors.white),
             backgroundColor: const Color(0xFF00CBA9),
           ),
@@ -716,6 +690,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
     );
   }
 }
+
 
 
 

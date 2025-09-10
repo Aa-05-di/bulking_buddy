@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 Future<void> main() async {
-  // This setup ensures that your app is initialized correctly.
+  
   WidgetsFlutterBinding.ensureInitialized();
   
-  // This locks the app to portrait mode only.
+  
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -26,7 +26,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF141A28),
       ),
-      // The app will ALWAYS start with your animation.
       home: const AnimatedSplashScreen(),
     );
   }

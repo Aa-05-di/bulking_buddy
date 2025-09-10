@@ -326,6 +326,34 @@ Future<Map<String, dynamic>> generateWorkoutPlan({
   }
 }
 
+Future<List<dynamic>> fetchSellerItems(String sellerEmail) async {
+  final url = Uri.parse('$baseurl/items/seller/$sellerEmail');
+  final response = await http.get(url);
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception('Failed to fetch seller items: ${_msg(response.body)}');
+  }
+}
+
+Future<void> updateItemStock({
+  required String itemId,
+  required int newQuantity,
+}) async {
+  final url = Uri.parse('$baseurl/items/update-stock');
+  final response = await http.patch(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'itemId': itemId,
+      'newQuantity': newQuantity,
+    }),
+  );
+  if (response.statusCode != 200) {
+    throw Exception('Failed to update stock: ${_msg(response.body)}');
+  }
+}
+
 Future<void> updateWorkoutSplit({
   required String email,
   required Map<String, String> newSplit,
