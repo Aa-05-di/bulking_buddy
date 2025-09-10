@@ -22,7 +22,6 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
-  // Core state
   List<dynamic> items = [];
   List<dynamic> cart = [];
   bool isLoading = true;
@@ -31,7 +30,7 @@ class _UserPageState extends State<UserPage> with TickerProviderStateMixin {
   int _pendingOrderCount = 0;
   late AnimationController _animationController;
 
-  // AI Planner State
+  
   final _weightController = TextEditingController();
   final _foodController = TextEditingController();
   int _totalProteinToday = 0;
