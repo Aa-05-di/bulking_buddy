@@ -22,6 +22,8 @@ A hyper-local, full-stack marketplace for fitness enthusiasts to buy and sell hi
 # About The Project
 Bulking Buddy is a mobile application designed to bridge the gap between home chefs who produce healthy, high-protein meals and fitness-focused individuals who need convenient, nutritious food options. It creates a complete, end-to-end e-commerce experience within a local community and integrates a unique AI feature to provide daily, personalized workout advice based on the user's nutritional intake.
 
+[Download Bulking Buddy APK now!](https://github.com/Aa-05-di/bulking_buddy/releases/download/v1.0.0/app-release.apk)
+
 ---
 
 # ✨ Key Features
