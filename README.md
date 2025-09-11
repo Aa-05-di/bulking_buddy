@@ -17,55 +17,55 @@ A hyper-local, full-stack marketplace for fitness enthusiasts to buy and sell hi
 
 [Key Features](https://github.com/Aa-05-di/bulking_buddy/edit/main/README.md#-key-features)
 
-For Buyers
-
-For Sellers
-
 [Gallery](https://github.com/Aa-05-di/bulking_buddy/edit/main/README.md#%EF%B8%8F-gallery)
 
 [Tech Stack](https://github.com/Aa-05-di/bulking_buddy/edit/main/README.md#-tech-stack)
 
-Getting Started
-
-Prerequisites
-
-Backend Setup
-
-Frontend Setup
 
 # About The Project
 Bulking Buddy is a mobile application designed to bridge the gap between home chefs who produce healthy, high-protein meals and fitness-focused individuals who need convenient, nutritious food options. It creates a complete, end-to-end e-commerce experience within a local community and integrates a unique AI feature to provide daily, personalized workout advice based on the user's nutritional intake.
 
 # ✨ Key Features
-For Buyers (Fitness Enthusiasts)
 
-Hyper-Local Discovery: Finds and displays high-protein meals from sellers in the user's immediate locality.
 
-Seamless Shopping: A smooth and intuitive interface for browsing items, adding to the cart, and managing quantities.
+## 🏋️ For Buyers (Fitness Enthusiasts)
 
-Flexible Ordering: Users can choose between local Delivery (with a nominal fee) or free Pickup.
+- **🔎 Hyper-Local Discovery**  
+  Finds and displays **high-protein meals** from sellers in the user’s immediate locality.  
 
-Order Tracking: A dedicated "My Orders" page to track the status of current and past orders.
+- **🛒 Seamless Shopping**  
+  Smooth and intuitive interface for **browsing items, adding to cart, and managing quantities**.  
 
-AI Workout Planner: A unique, integrated feature that:
+- **📦 Flexible Ordering**  
+  Choose between **local Delivery** (nominal fee) or **free Pickup**.  
 
-Calculates daily protein intake based on purchases.
+- **📍 Order Tracking**  
+  A dedicated **"My Orders" page** to track current and past orders.  
 
-Allows users to add other meals they've eaten.
+- **🤖 AI Workout Planner** (Powered by **Google Gemini API**)  
+  - Calculates **daily protein intake** based on purchases.  
+  - Allows users to **add other meals** they've eaten.  
+  - Generates a **personalized workout plan** tailored to the user’s muscle group split & protein consumption.  
 
-Uses the Google Gemini API to generate a personalized workout plan for the day, tailored to the user's specific muscle group split and total protein consumption.
+- **📆 Customizable Workout Split**  
+  Users can edit their **weekly workout schedule** (e.g., Chest Day, Leg Day, Rest Day).  
 
-Customizable Workout Split: Users can edit their weekly workout schedule (e.g., Chest Day, Leg Day, Rest Day) to match their personal routine.
 
-For Sellers (Home Chefs)
+## 👨‍🍳 For Sellers (Home Chefs)
 
-Easy Product Listing: A simple form for sellers to add new products, including details like price, protein content, and initial stock quantity.
+- **📝 Easy Product Listing**  
+  Add new products with **price, protein content, and stock quantity** via a simple form.  
 
-Image Uploads: Sellers can take a picture with their phone's camera, which is automatically uploaded to Cloudinary to get a live image URL.
+- **📸 Image Uploads**  
+  Capture product images with phone camera → **auto-uploaded to Cloudinary** for live URLs.  
 
-Order Management: A "Received Orders" dashboard to view and manage incoming orders, with options to "Accept" or mark as "Delivered".
+- **📊 Order Management**  
+  A **"Received Orders" dashboard** to view and manage incoming orders with options to **Accept** or **Mark as Delivered**.  
 
-Stock Management: A dedicated page for sellers to view and update the stock quantity of their items in real-time.
+- **📦 Stock Management**  
+  A dedicated page to **view and update stock quantity** in real time.  
+
+---
 
 ## 🖼️ Gallery  
 
@@ -95,88 +95,25 @@ Stock Management: A dedicated page for sellers to view and update the stock quan
 </div>
 
 
+## 📱 Tech Stack
 
+### 🔹 Frontend (Mobile)
+- **Framework**: Flutter  
+- **State Management**: setState  
+- **Animation**: 
+  - Lottie  
+  - animated_text_kit  
+  - flutter_staggered_animations  
+- **Services**:  
+  - image_picker  
+  - shared_preferences  
 
-# 🚀 Tech Stack
-Frontend (Mobile):
+### 🔹 Backend
+- **Framework**: Node.js with Express.js  
+- **Database**: MongoDB with Mongoose  
+- **Deployment**: Render  
 
-Framework: Flutter
-
-State Management: setState
-
-Animation: Lottie, animated_text_kit, flutter_staggered_animations
-
-Services: image_picker, shared_preferences
-
-Backend:
-
-Framework: Node.js with Express.js
-
-Database: MongoDB with Mongoose
-
-Deployment: Render
-
-Third-Party Services:
-
-Google Gemini API: For generative AI workout plans.
-
-Cloudinary: For cloud-based image hosting and management.
-
-⚙️ Getting Started
-To get a local copy up and running, follow these simple steps.
-
-Prerequisites
-
-Node.js and npm installed on your machine.
-
-Flutter SDK installed and configured.
-
-A code editor like VS Code.
-
-Access to a MongoDB Atlas cluster.
-
-A Google Gemini API key.
-
-A Cloudinary account.
-
-Backend Setup (bulkbuddyroute)
-
-Clone the repository:
-
-git clone [https://github.com/Aa-05-di/bulkingbuddybackend.git](https://github.com/Aa-05-di/bulkingbuddybackend.git)
-cd bulkingbuddybackend
-
-Install dependencies:
-
-npm install
-
-Create a .env file in the root of the backend folder and add your secret keys:
-
-MONGO="YOUR_MONGODB_PASSWORD_HERE"
-GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
-
-Start the server:
-
-npm start
-
-The server will be running on http://localhost:8000.
-
-Frontend Setup (FIRST_PRO)
-
-Clone the repository:
-
-git clone [https://github.com/Aa-05-di/bulking_buddy.git](https://github.com/Aa-05-di/bulking_buddy.git)
-cd bulking_buddy
-
-Install dependencies:
-
-flutter pub get
-
-Configure the API URL:
-Open the lib/api/api.dart file. The baseurl is already configured to automatically point to your local backend when you run the app in debug mode.
-
-Run the app:
-Connect a device or start an emulator and run the app from your IDE, or use the command:
-
-flutter run
+### 🔹 Third-Party Services
+- **Google Gemini API** → Generative AI workout plans  
+- **Cloudinary** → Cloud-based image hosting & management  
 
