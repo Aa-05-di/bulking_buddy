@@ -69,27 +69,28 @@ Bulking Buddy is a mobile application designed to bridge the gap between home ch
 # 🖼️ Gallery  
 
 <table align="center">
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/e2c7bbcc-d615-4e13-8fa6-b14fde540169" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/7ac42af6-76d9-4548-8ca7-ae8467f2124b" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/67316a93-9752-4c2a-aac6-d42ada082c27" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/b15c33ad-443f-42fd-a443-9fbfe123356e" width="150"/></td>
-  </tr>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/195b32a3-299d-41fb-ac99-f73e01383e13" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/113a49ca-9b50-4269-9d38-168916ecdb54" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/17e624f7-3ec0-4ce2-8b13-832f63ce261d" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/be5e38f8-fe45-422b-bd22-71883e315b83" width="150"/></td>
-  </tr>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/b9c64c7f-558e-4122-8946-eb38d0adf64c" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/56bae99f-5590-4b84-a882-a763b8372aaf" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/7cf48abd-e4e5-40a7-a762-aa4e7cdb3ad4" width="150"/></td>
-    <td><img src="https://github.com/user-attachments/assets/3161022c-2a1c-42f4-8370-89a0924db037" width="150"/></td>
-  </tr>
+<tr>
+<td><img src="https://github.com/user-attachments/assets/e2c7bbcc-d615-4e13-8fa6-b14fde540169" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/7ac42af6-76d9-4548-8ca7-ae8467f2124b" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/67316a93-9752-4c2a-aac6-d42ada082c27" width="200"/></td>
+</tr>
+<tr>
+<td><img src="https://github.com/user-attachments/assets/b15c33ad-443f-42fd-a443-9fbfe123356e" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/195b32a3-299d-41fb-ac99-f73e01383e13" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/113a49ca-9b50-4269-9d38-168916ecdb54" width="200"/></td>
+</tr>
+<tr>
+<td><img src="https://github.com/user-attachments/assets/17e624f7-3ec0-4ce2-8b13-832f63ce261d" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/be5e38f8-fe45-422b-bd22-71883e315b83" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/b9c64c7f-558e-4122-8946-eb38d0adf64c" width="200"/></td>
+</tr>
+<tr>
+<td><img src="https://github.com/user-attachments/assets/56bae99f-5590-4b84-a882-a763b8372aaf" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/7cf48abd-e4e5-40a7-a762-aa4e7cdb3ad4" width="200"/></td>
+<td><img src="https://github.com/user-attachments/assets/3161022c-2a1c-42f4-8370-89a0924db037" width="200"/></td>
+</tr>
 </table>
 
----
 
 # 📱 Tech Stack
 
